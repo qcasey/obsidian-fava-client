@@ -23,6 +23,7 @@ export const SECTIONS: SectionDef[] = [
 			{ id: 'runway' },
 			{ id: 'burn', params: { mode: 'both' } },
 			{ id: 'business-cash' },
+			{ id: 'envelopes' },
 			{ id: 'hours-to-buy' },
 		],
 		summary: (s) => `${fmtMoney(s.metrics.netWorth.current)} · ${s.metrics.runway.total.toFixed(1)} mo runway`,
@@ -38,8 +39,10 @@ export const SECTIONS: SectionDef[] = [
 			{ id: 'qtd', params: { side: 'personal' } },
 			{ id: 'category-pace' },
 			{ id: 'envelopes' },
+			{ id: 'recurring', params: { side: 'personal' } },
 		],
-		summary: (s) => `$${s.metrics.personal.dailyBurn.toFixed(0)}/day · saving ${s.metrics.personal.savingsRate.toFixed(0)}%`,
+		summary: (s) =>
+			`$${s.metrics.personal.dailyBurn.toFixed(0)}/day · saving ${s.metrics.personal.savingsRate.toFixed(0)}% · ${fmtMoney(s.recurring.personalMonthlyTotal)}/mo fixed`,
 	},
 	{
 		id: 'business',
@@ -60,14 +63,5 @@ export const SECTIONS: SectionDef[] = [
 		title: 'Net worth & runway',
 		cards: [{ id: 'composition' }, { id: 'upcoming' }, { id: 'survival-opex' }],
 		summary: (s) => `${fmtMoney(s.metrics.forecast.combined30d)} combined cash in 30 days`,
-	},
-	{
-		id: 'fixed',
-		title: 'Fixed commitments',
-		cards: [{ id: 'recurring', params: { side: 'personal' } }],
-		summary: (s) => {
-			const n = s.recurring.items.filter((i) => i.side === 'personal' && i.kind === 'expense').length;
-			return `${fmtMoney(s.recurring.personalMonthlyTotal)}/mo · ${n} charges`;
-		},
 	},
 ];

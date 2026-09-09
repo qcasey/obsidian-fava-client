@@ -213,18 +213,20 @@
 .fava-cats { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
 
 /* Envelopes */
-.fava-envelope { display: flex; flex-direction: column; gap: 3px; }
+.fava-envelope { display: flex; flex-direction: column; gap: 4px; }
 .fava-envelope__top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: var(--font-ui-small); }
-.fava-envelope__label { font-weight: 500; }
-.fava-envelope__amounts { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.fava-envelope__pct { text-align: right; font-size: var(--font-ui-smaller); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.fava-envelope__label { font-weight: 500; min-width: 0; }
+.fava-envelope__pct { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.fava-envelope__amounts { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; line-height: 1.4; }
+.fava-envelope + .fava-envelope { margin-top: 6px; }
 
 /* Recurring */
-.fava-rec { display: flex; align-items: center; gap: 8px; font-size: var(--font-ui-small); }
+.fava-rec { display: flex; align-items: flex-start; gap: 10px; font-size: var(--font-ui-small); }
+.fava-rec + .fava-rec { margin-top: 2px; }
 .fava-rec__left { flex: 1; min-width: 0; }
 .fava-rec__name { display: flex; align-items: baseline; gap: 6px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fava-rec__drift { font-size: var(--font-ui-smaller); font-variant-numeric: tabular-nums; }
-.fava-rec__meta { font-size: var(--font-ui-smaller); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fava-rec__meta { font-size: var(--font-ui-smaller); color: var(--text-muted); line-height: 1.35; }
 .fava-rec__right { text-align: right; flex-shrink: 0; }
 .fava-rec__amount { font-weight: 600; font-variant-numeric: tabular-nums; }
 .fava-rec__unit { font-size: var(--font-ui-smaller); font-weight: 400; color: var(--text-muted); }

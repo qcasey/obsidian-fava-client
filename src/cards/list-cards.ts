@@ -23,13 +23,14 @@ function envelopeRow(parent: HTMLElement, e: { label: string; balance: number; t
 	const row = parent.createDiv({ cls: 'fava-envelope' });
 	const top = row.createDiv({ cls: 'fava-envelope__top' });
 	top.createSpan({ cls: 'fava-envelope__label', text: e.label });
-	const right = top.createSpan({ cls: 'fava-envelope__amounts' });
-	right.createSpan({ text: `${fmtMoney(e.balance)} / ${fmtMoney(e.target)}` });
-	if (e.delta3mo !== 0) {
-		right.createSpan({ cls: e.delta3mo > 0 ? 'is-green' : 'is-red', text: ` ${fmtSigned(e.delta3mo)} (3 mo)` });
-	}
+	top.createSpan({ cls: 'fava-envelope__pct', text: `${e.pct.toFixed(0)}%` });
 	bar(row, e.pct, e.pct >= 100 ? 'green' : 'normal');
-	row.createDiv({ cls: 'fava-envelope__pct', text: `${e.pct.toFixed(0)}%` });
+	const amounts = row.createDiv({ cls: 'fava-envelope__amounts' });
+	amounts.createSpan({ text: `${fmtMoney(e.balance)} of ${fmtMoney(e.target)}` });
+	if (e.delta3mo !== 0) {
+		amounts.createSpan({ text: ' · ' });
+		amounts.createSpan({ cls: e.delta3mo > 0 ? 'is-green' : 'is-red', text: `${fmtSigned(e.delta3mo)} in 3 mo` });
+	}
 }
 
 export const envelopeCard: CardDef = {
@@ -93,10 +94,11 @@ function recurringRows(parent: HTMLElement, items: RecurringItem[]): void {
 				text: `${i.driftPct > 0 ? '▲' : '▼'}${Math.abs(i.driftPct).toFixed(0)}%`,
 			});
 		}
-		left.createDiv({
-			cls: 'fava-rec__meta',
-			text: `${i.category} · ${i.cadence}${i.amountVaries ? ' · varies' : ''} · next ${fmtDay(i.nextDue)}`,
-		});
+		const meta = [i.category];
+		if (i.cadence !== 'monthly') meta.push(i.cadence);
+		if (i.amountVaries) meta.push('varies');
+		meta.push(`next ${fmtDay(i.nextDue)}`);
+		left.createDiv({ cls: 'fava-rec__meta', text: meta.join(' · ') });
 		const right = row.createDiv({ cls: 'fava-rec__right' });
 		const amt = right.createDiv({ cls: `fava-rec__amount${credit ? ' is-green' : ''}` });
 		amt.createSpan({ text: `${credit ? '+' : ''}${fmtMoney(Math.abs(i.typicalAmount))}` });
