@@ -21,9 +21,8 @@ export const SECTIONS: SectionDef[] = [
 			{ id: 'verdict' },
 			{ id: 'net-worth' },
 			{ id: 'runway' },
-			{ id: 'surplus' },
+			{ id: 'burn', params: { mode: 'both' } },
 			{ id: 'business-cash' },
-			{ id: 'business-net' },
 			{ id: 'hours-to-buy' },
 		],
 		summary: (s) => `${fmtMoney(s.metrics.netWorth.current)} · ${s.metrics.runway.total.toFixed(1)} mo runway`,
@@ -32,7 +31,7 @@ export const SECTIONS: SectionDef[] = [
 		id: 'personal',
 		title: 'Personal',
 		cards: [
-			{ id: 'burn', params: { mode: 'both' } },
+			{ id: 'surplus' },
 			{ id: 'trend', params: { side: 'personal' } },
 			{ id: 'spend-ring' },
 			{ id: 'monthly-bars', params: { side: 'personal' } },
@@ -46,6 +45,7 @@ export const SECTIONS: SectionDef[] = [
 		id: 'business',
 		title: 'Business',
 		cards: [
+			{ id: 'business-net' },
 			{ id: 'breakeven' },
 			{ id: 'trend', params: { side: 'business' } },
 			{ id: 'liabilities-band' },
