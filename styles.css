@@ -1,8 +1,661 @@
-/*
+/* Fava client — all classes prefixed fava-. Obsidian theme variables only. */
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+/* ── Tokens ── */
+.fava-dashboard,
+.fava-embed,
+.fava-entry-modal {
+	--fava-chart-1: var(--color-blue);
+	--fava-chart-2: var(--color-orange);
+	--fava-chart-3: var(--color-green);
+	--fava-chart-4: var(--color-yellow);
+	--fava-chart-5: var(--color-pink);
+	--fava-chart-6: var(--color-purple);
+	--fava-muted: var(--background-modifier-border);
+}
+.is-green { --fava-status: var(--color-green); }
+.is-yellow { --fava-status: var(--color-yellow); }
+.is-red { --fava-status: var(--color-red); }
+.fava-card .is-green, .fava-inline.is-green, .fava-verdict.is-green .fava-dot { color: var(--color-green); }
+.fava-card .is-red, .fava-inline.is-red { color: var(--color-red); }
+.fava-card .is-yellow, .fava-inline.is-yellow { color: var(--color-yellow); }
+.fava-card .is-muted { color: var(--text-muted); }
 
-If your plugin does not need CSS, delete this file.
+/* The hidden attribute must beat our display rules. */
+.fava-dashboard [hidden],
+.fava-embed [hidden],
+.fava-entry-modal [hidden],
+.fava-card--hidden {
+	display: none !important;
+}
 
-*/
+/* ── Layout ── */
+.fava-dashboard {
+	container-type: inline-size;
+	container-name: fava;
+	padding: 0;
+}
+.fava-root {
+	padding: 0 var(--size-4-3) var(--size-4-8);
+	max-width: 1200px;
+	margin: 0 auto;
+}
+.fava-embed {
+	container-type: inline-size;
+	container-name: fava;
+	margin: var(--size-4-2) 0;
+}
+.fava-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+	gap: var(--size-4-2);
+	align-items: start;
+}
+@container fava (min-width: 560px) {
+	.fava-grid:not(.is-masonry) .fava-card--wide { grid-column: span 2; }
+}
+.fava-grid.is-masonry {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+}
+.fava-col {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+@container fava (min-width: 860px) {
+	.fava-grid { gap: var(--size-4-3); }
+}
+
+/* ── Header ── */
+.fava-header {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-4-2);
+	padding: var(--size-4-2) 0;
+	background: var(--background-primary);
+}
+.fava-header__left { display: flex; align-items: baseline; gap: var(--size-4-2); flex-wrap: wrap; min-width: 0; }
+.fava-header__title { margin: 0; font-size: var(--font-ui-large); }
+.fava-header__updated { color: var(--text-faint); font-size: var(--font-ui-smaller); }
+.fava-header__right { display: flex; gap: var(--size-2-1); }
+.fava-badge {
+	font-size: var(--font-ui-smaller);
+	padding: 1px 8px;
+	border-radius: 999px;
+	background: var(--background-secondary);
+	color: var(--text-muted);
+}
+.fava-badge.is-warn { background: rgba(var(--color-red-rgb), 0.15); color: var(--color-red); }
+.fava-iconbtn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border-radius: var(--radius-s);
+	color: var(--text-muted);
+	background: transparent;
+	box-shadow: none;
+}
+.fava-iconbtn:hover { color: var(--text-normal); background: var(--background-modifier-hover); }
+.is-mobile .fava-iconbtn { width: 44px; height: 44px; }
+.fava-iconbtn.is-spinning svg { animation: fava-spin 1s linear infinite; }
+@keyframes fava-spin { to { transform: rotate(360deg); } }
+
+/* ── Sections ── */
+.fava-section { margin-top: var(--size-4-3); }
+.fava-section__header {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	width: 100%;
+	min-height: 44px;
+	padding: var(--size-2-2) var(--size-2-1);
+	background: transparent;
+	box-shadow: none;
+	border: none;
+	border-bottom: 1px solid var(--background-modifier-border);
+	border-radius: 0;
+	color: var(--text-normal);
+	font-weight: 600;
+	text-align: left;
+	cursor: pointer;
+}
+.fava-section__header:hover { background: var(--background-modifier-hover); }
+.fava-section__chevron { display: inline-flex; color: var(--text-muted); transition: transform 120ms ease; }
+.fava-section.is-collapsed .fava-section__chevron { transform: rotate(-90deg); }
+.fava-section__title { flex: 1; }
+.fava-section__summary {
+	color: var(--text-muted);
+	font-weight: 400;
+	font-size: var(--font-ui-smaller);
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+}
+.fava-section .fava-grid { margin-top: var(--size-4-2); }
+
+/* ── Card ── */
+.fava-card {
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	padding: var(--size-4-3);
+	min-width: 0;
+}
+.fava-card__header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--size-4-2); }
+.fava-card__header--toggle { cursor: pointer; margin: calc(-1 * var(--size-4-3)); padding: var(--size-4-3); border-radius: var(--radius-m); }
+.fava-card__header--toggle:hover { background: var(--background-modifier-hover); }
+.fava-card__main { min-width: 0; flex: 1; }
+.fava-card__label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	font-size: var(--font-ui-smaller);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+.fava-card__value {
+	margin-top: 2px;
+	font-size: 1.5em;
+	font-weight: 600;
+	line-height: 1.2;
+	font-variant-numeric: tabular-nums;
+}
+.fava-card__detail { margin-top: 2px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.fava-card__aside { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.fava-card__link { display: inline-flex; color: var(--text-faint); padding: 4px; }
+.fava-card__link:hover { color: var(--text-normal); }
+.fava-card__chevron { display: inline-flex; color: var(--text-faint); padding: 4px; transition: transform 120ms ease; }
+.fava-card.is-expanded .fava-card__chevron { transform: rotate(180deg); }
+.fava-card__body { margin-top: var(--size-4-2); display: flex; flex-direction: column; gap: 6px; }
+.fava-card__body:empty { display: none; }
+.fava-card.is-expanded .fava-card__header--toggle { margin-bottom: 0; }
+.fava-card__chart { margin-top: var(--size-4-2); }
+.fava-dot {
+	display: inline-block;
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--fava-status, var(--text-faint));
+	flex-shrink: 0;
+}
+.fava-dot.is-green { background: var(--color-green); }
+.fava-dot.is-yellow { background: var(--color-yellow); }
+.fava-dot.is-red { background: var(--color-red); }
+
+/* ── Body primitives ── */
+.fava-kv { display: flex; justify-content: space-between; gap: var(--size-4-2); font-size: var(--font-ui-small); }
+.fava-kv__label { color: var(--text-normal); min-width: 0; }
+.fava-kv__value { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.fava-kv.is-muted, .fava-kv.is-muted .fava-kv__label, .fava-kv.is-muted .fava-kv__value { color: var(--text-muted); }
+.fava-kv.is-strong { font-weight: 600; }
+.fava-note { font-size: var(--font-ui-smaller); color: var(--text-muted); line-height: 1.4; }
+.fava-subhead { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); margin-top: 4px; }
+.fava-bar { height: 8px; border-radius: 4px; background: var(--fava-muted); overflow: hidden; flex: 1; }
+.fava-bar__fill { height: 100%; width: var(--fava-pct, 0%); border-radius: 4px; background: var(--text-muted); transition: width 200ms ease; }
+.fava-bar__fill.is-red { background: var(--color-red); }
+.fava-bar__fill.is-green { background: var(--color-green); }
+.fava-bar__fill.is-accent { background: var(--interactive-accent); }
+.fava-barrow { display: flex; align-items: center; gap: 8px; font-size: var(--font-ui-small); }
+.fava-barrow__label { width: 7em; flex-shrink: 0; color: var(--text-muted); font-size: var(--font-ui-smaller); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fava-barrow__value { width: 4.5em; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.fava-barrow__extra { width: 3.5em; flex-shrink: 0; text-align: right; font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.fava-cats { display: flex; flex-direction: column; gap: 4px; margin-top: 4px; }
+
+/* Envelopes */
+.fava-envelope { display: flex; flex-direction: column; gap: 3px; }
+.fava-envelope__top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; font-size: var(--font-ui-small); }
+.fava-envelope__label { font-weight: 500; }
+.fava-envelope__amounts { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fava-envelope__pct { text-align: right; font-size: var(--font-ui-smaller); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+
+/* Recurring */
+.fava-rec { display: flex; align-items: center; gap: 8px; font-size: var(--font-ui-small); }
+.fava-rec__left { flex: 1; min-width: 0; }
+.fava-rec__name { display: flex; align-items: baseline; gap: 6px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fava-rec__drift { font-size: var(--font-ui-smaller); font-variant-numeric: tabular-nums; }
+.fava-rec__meta { font-size: var(--font-ui-smaller); color: var(--text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fava-rec__right { text-align: right; flex-shrink: 0; }
+.fava-rec__amount { font-weight: 600; font-variant-numeric: tabular-nums; }
+.fava-rec__unit { font-size: var(--font-ui-smaller); font-weight: 400; color: var(--text-muted); }
+
+/* Upcoming flows */
+.fava-flow { display: flex; align-items: center; gap: 8px; font-size: var(--font-ui-small); }
+.fava-flow__date { width: 3.5em; flex-shrink: 0; color: var(--text-muted); font-size: var(--font-ui-smaller); font-variant-numeric: tabular-nums; }
+.fava-flow__payee { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fava-flow__tag { font-size: var(--font-ui-smaller); color: var(--text-faint); }
+.fava-flow__amount { width: 5em; flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; }
+
+/* Liability band */
+.fava-band { position: relative; height: 8px; border-radius: 4px; background: var(--fava-muted); margin-top: 6px; }
+.fava-band__marker {
+	position: absolute;
+	top: 50%;
+	left: var(--fava-pos, 0%);
+	width: 14px;
+	height: 14px;
+	border-radius: 50%;
+	background: var(--text-normal);
+	border: 2px solid var(--background-secondary);
+	transform: translate(-50%, -50%);
+}
+.fava-band__labels { display: flex; justify-content: space-between; font-size: var(--font-ui-smaller); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+
+/* Pace */
+.fava-pace { display: flex; flex-direction: column; gap: 3px; font-size: var(--font-ui-small); }
+.fava-pace__top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.fava-pace__nums { font-size: var(--font-ui-smaller); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.fava-pace__pct { text-align: right; font-size: var(--font-ui-smaller); color: var(--text-faint); }
+
+/* Table */
+.fava-table { width: 100%; font-size: var(--font-ui-smaller); border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.fava-table th { text-align: right; font-weight: 500; color: var(--text-muted); padding: 2px 4px; }
+.fava-table th:first-child, .fava-table td:first-child { text-align: left; padding-left: 0; }
+.fava-table td { text-align: right; padding: 3px 4px; border-top: 1px solid var(--background-modifier-border); }
+
+/* Verdict */
+.fava-verdict__head { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.fava-verdict__list { margin: var(--size-4-2) 0 0; padding-left: 1.2em; font-size: var(--font-ui-small); }
+.fava-verdict.is-red { border-color: rgba(var(--color-red-rgb), 0.5); }
+
+/* Hours to buy */
+.fava-hours { display: flex; align-items: center; gap: var(--size-4-3); margin-top: 6px; }
+.fava-hours__input { position: relative; width: 8em; flex-shrink: 0; }
+.fava-hours__prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.fava-hours__input input { width: 100%; padding-left: 1.6em; font-variant-numeric: tabular-nums; min-height: 36px; }
+.fava-hours__out { min-width: 0; }
+.fava-slider input[type='range'] { width: 100%; }
+
+/* Segmented control */
+.fava-seg { display: inline-flex; padding: 2px; border-radius: var(--radius-m); background: var(--background-modifier-form-field); gap: 2px; width: 100%; }
+.fava-seg button {
+	flex: 1;
+	min-height: 32px;
+	border: none;
+	box-shadow: none;
+	background: transparent;
+	color: var(--text-muted);
+	border-radius: var(--radius-s);
+	font-size: var(--font-ui-small);
+	cursor: pointer;
+}
+.fava-seg button.is-active { background: var(--background-primary); color: var(--text-normal); font-weight: 500; }
+.is-mobile .fava-seg button { min-height: 40px; }
+
+/* ── Charts ── */
+svg.fava-chart { width: 100%; height: auto; display: block; aspect-ratio: 2 / 1; overflow: visible; }
+svg.fava-chart--spark { aspect-ratio: 320 / 56; }
+svg.fava-chart--donut { aspect-ratio: 1; }
+.fava-chart__text { font-size: 9px; fill: var(--text-muted); font-family: var(--font-interface); }
+.fava-chart__grid { stroke: var(--background-modifier-border); stroke-width: 1; }
+.fava-chart__line { fill: none; stroke: var(--fava-chart-1); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.fava-chart__area { fill: var(--fava-chart-1); opacity: 0.12; }
+.fava-chart__dot { fill: var(--fava-chart-1); }
+.fava-chart__hit { fill: transparent; }
+.fava-chart__bar.is-slot-1, .fava-legend__swatch.is-slot-1, .fava-donut__slice.is-slot-1, .fava-chip__swatch.is-slot-1 { fill: var(--fava-chart-1); background: var(--fava-chart-1); }
+.fava-chart__bar.is-slot-2, .fava-legend__swatch.is-slot-2, .fava-donut__slice.is-slot-2, .fava-chip__swatch.is-slot-2 { fill: var(--fava-chart-2); background: var(--fava-chart-2); }
+.fava-donut__slice.is-slot-3, .fava-chip__swatch.is-slot-3 { fill: var(--fava-chart-3); background: var(--fava-chart-3); }
+.fava-donut__slice.is-slot-4, .fava-chip__swatch.is-slot-4 { fill: var(--fava-chart-4); background: var(--fava-chart-4); }
+.fava-donut__slice.is-slot-5, .fava-chip__swatch.is-slot-5 { fill: var(--fava-chart-5); background: var(--fava-chart-5); }
+.fava-donut__slice.is-contrib, .fava-chip__swatch.is-contrib { fill: var(--fava-chart-6); background: var(--fava-chart-6); }
+.fava-donut__slice.is-other, .fava-chip__swatch.is-other { fill: var(--text-faint); background: var(--text-faint); }
+.fava-donut__slice.is-unspent, .fava-chip__swatch.is-unspent { fill: var(--fava-muted); background: var(--fava-muted); stroke: var(--fava-muted); }
+.fava-donut__slice { stroke: var(--background-secondary); stroke-width: 1.5; }
+.fava-legend { display: flex; gap: var(--size-4-3); justify-content: center; margin-top: 4px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.fava-legend__item { display: inline-flex; align-items: center; gap: 5px; }
+.fava-legend__swatch, .fava-chip__swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
+.fava-ring { display: flex; flex-direction: column; align-items: center; gap: var(--size-4-2); }
+.fava-donut { position: relative; width: 100%; max-width: 220px; }
+.fava-donut__center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; text-align: center; }
+.fava-donut__big { font-size: 1.6em; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fava-donut__small { font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.fava-chips { display: flex; flex-wrap: wrap; gap: 6px 10px; justify-content: center; font-size: var(--font-ui-smaller); }
+.fava-chip { display: inline-flex; align-items: center; gap: 5px; }
+.fava-chip.is-muted { color: var(--text-muted); }
+
+/* ── Inline values ── */
+.fava-inline {
+	font-variant-numeric: tabular-nums;
+	padding: 0 0.3em;
+	border-radius: var(--radius-s);
+	background: var(--background-secondary);
+	border-bottom: 2px solid var(--fava-status, transparent);
+	white-space: nowrap;
+}
+.fava-inline.is-loading { color: var(--text-faint); }
+.fava-inline.is-error { color: var(--color-red); }
+
+/* ── States ── */
+.fava-skeleton__line { height: 10px; border-radius: 4px; background: var(--fava-muted); margin: 6px 0; animation: fava-pulse 1.4s ease-in-out infinite; }
+.fava-skeleton__line.is-short { width: 40%; }
+.fava-skeleton__line.is-big { height: 22px; width: 60%; }
+@keyframes fava-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) {
+	.fava-skeleton__line, .fava-iconbtn.is-spinning svg { animation: none; }
+	.fava-bar__fill, .fava-card__chevron, .fava-section__chevron { transition: none; }
+}
+.fava-error__msg { margin-top: 6px; font-size: var(--font-ui-small); color: var(--text-muted); word-break: break-word; }
+.fava-error__actions { display: flex; gap: 8px; margin-top: var(--size-4-2); }
+.fava-banner { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: var(--size-4-2); padding: 6px 10px; border-radius: var(--radius-s); font-size: var(--font-ui-small); background: rgba(var(--color-red-rgb), 0.12); color: var(--color-red); }
+.fava-linkbtn { background: transparent; box-shadow: none; border: none; color: inherit; text-decoration: underline; cursor: pointer; padding: 0; }
+
+/* ── Settings ── */
+.fava-settings__json { width: 100%; font-family: var(--font-monospace); font-size: var(--font-smaller); resize: vertical; }
+.fava-settings__status { margin-top: 4px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
+.fava-settings__status.is-error { color: var(--color-red); }
+
+/* ── Quick entry (merged from src/ui/quick-entry.css) ── */
+/* ── Quick entry modal ─────────────────────────────────────────────── */
+
+.fava-entry-modal {
+	max-width: 520px;
+	width: 100%;
+}
+
+.fava-entry {
+	display: grid;
+	gap: var(--size-4-2);
+}
+
+.fava-field {
+	display: flex;
+	flex-direction: column;
+	gap: var(--size-2-1);
+	border-radius: var(--radius-m);
+	min-width: 0;
+}
+
+.fava-field__label {
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+.fava-field__input,
+.fava-entry input[type='text'],
+.fava-entry input[type='date'] {
+	width: 100%;
+	min-height: 40px;
+	box-sizing: border-box;
+}
+
+.fava-field--amount .fava-field__input {
+	text-align: right;
+	font-variant-numeric: tabular-nums;
+}
+
+.fava-field-row {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--size-4-2);
+}
+
+.fava-split-row {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 6rem auto;
+	align-items: end;
+	gap: var(--size-4-2);
+}
+
+.fava-split-row__remove {
+	min-height: 40px;
+	align-self: end;
+}
+
+.fava-entry__split-link {
+	justify-self: start;
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-2-1);
+	background: none;
+	box-shadow: none;
+	padding: 0 var(--size-2-1);
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+}
+
+.fava-entry__split-link:hover {
+	color: var(--text-normal);
+}
+
+.fava-entry__split-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+/* Confidence rings from the interpreter (cleared when the user edits) */
+.fava-conf-medium {
+	box-shadow: 0 0 0 1px var(--color-yellow);
+}
+
+.fava-conf-low {
+	box-shadow: 0 0 0 2px var(--color-yellow);
+}
+
+/* Personal / business segmented control */
+.fava-seg {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 2px;
+	padding: 2px;
+	background: var(--background-secondary);
+	border-radius: var(--radius-m);
+}
+
+.fava-seg__btn {
+	min-height: 36px;
+	box-shadow: none;
+	background: transparent;
+	color: var(--text-muted);
+	border-radius: var(--radius-s);
+}
+
+.fava-seg__btn[aria-pressed='true'] {
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-weight: var(--font-medium);
+	box-shadow: var(--shadow-s);
+}
+
+.fava-entry__toggles {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--size-4-2);
+}
+
+.fava-entry__toggles .setting-item {
+	border: none;
+	padding: var(--size-2-1) 0;
+}
+
+.fava-entry__toggles .setting-item-name {
+	font-size: var(--font-ui-small);
+}
+
+/* Duplicate warning */
+.fava-alert {
+	border: 1px solid var(--background-modifier-border);
+	border-left: 3px solid var(--color-yellow);
+	border-radius: var(--radius-m);
+	padding: var(--size-4-2) var(--size-4-3);
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	display: grid;
+	gap: var(--size-2-1);
+}
+
+.fava-alert__title {
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-2);
+	color: var(--text-normal);
+	font-weight: var(--font-medium);
+}
+
+.fava-alert__icon svg {
+	width: 14px;
+	height: 14px;
+	color: var(--color-yellow);
+}
+
+/* Entry preview */
+.fava-preview-box {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	overflow: hidden;
+}
+
+.fava-preview-box__header {
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: none;
+	box-shadow: none;
+	padding: var(--size-4-2) var(--size-4-3);
+	font-size: var(--font-ui-smaller);
+	font-weight: var(--font-medium);
+	color: var(--text-muted);
+	border-radius: 0;
+}
+
+.fava-preview-box__chevron svg {
+	width: 14px;
+	height: 14px;
+}
+
+.fava-preview {
+	margin: 0;
+	border-top: 1px solid var(--background-modifier-border);
+	padding: var(--size-4-3);
+	font-family: var(--font-monospace);
+	font-size: var(--font-smaller);
+	line-height: 1.5;
+	overflow-x: auto;
+	white-space: pre;
+	background: var(--background-secondary);
+}
+
+.fava-entry__submit {
+	width: 100%;
+	min-height: 44px;
+	font-size: var(--font-ui-medium);
+}
+
+.fava-entry__submit.is-busy {
+	opacity: 0.7;
+}
+
+/* Account suggestions: emphasise the distinguishing tail */
+.fava-suggest-account__head {
+	color: var(--text-faint);
+}
+
+.fava-suggest-account__tail {
+	color: var(--text-normal);
+}
+
+/* ── Interpreter panel ─────────────────────────────────────────────── */
+
+.fava-interp {
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	overflow: hidden;
+}
+
+.fava-interp__header {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: var(--size-2-2);
+	background: none;
+	box-shadow: none;
+	border-radius: 0;
+	padding: var(--size-4-2) var(--size-4-3);
+	font-size: var(--font-ui-small);
+	font-weight: var(--font-medium);
+	color: var(--text-normal);
+	min-height: 40px;
+}
+
+.fava-interp__icon svg,
+.fava-interp__chevron svg {
+	width: 16px;
+	height: 16px;
+	color: var(--text-muted);
+}
+
+.fava-interp__chevron {
+	margin-left: auto;
+	transition: transform 120ms ease;
+}
+
+.fava-interp__header.is-open .fava-interp__chevron {
+	transform: rotate(180deg);
+}
+
+.fava-interp__body {
+	border-top: 1px solid var(--background-modifier-border);
+	padding: var(--size-4-3);
+	display: grid;
+	gap: var(--size-4-2);
+}
+
+.fava-interp__body.is-busy {
+	opacity: 0.7;
+}
+
+.fava-interp__text {
+	width: 100%;
+	box-sizing: border-box;
+	resize: vertical;
+	font-size: var(--font-ui-small);
+}
+
+.fava-interp__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--size-4-2);
+}
+
+.fava-interp__btn {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--size-2-1);
+	min-height: 36px;
+}
+
+.fava-interp__btn-icon svg {
+	width: 14px;
+	height: 14px;
+}
+
+.fava-interp__tip {
+	margin: 0;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+}
+
+/* ── Mobile touch targets ──────────────────────────────────────────── */
+
+.is-mobile .fava-entry button,
+.is-mobile .fava-interp__btn,
+.is-mobile .fava-seg__btn,
+.is-mobile .fava-field__input {
+	min-height: 44px;
+}
+
+.is-mobile .fava-split-row {
+	grid-template-columns: minmax(0, 1fr) 5.5rem auto;
+}
+.fava-loading { margin-top: var(--size-4-2); }
+.fava-error pre.fava-error__msg { white-space: pre-wrap; font-size: var(--font-ui-smaller); background: transparent; padding: 0; margin: 6px 0 0; }

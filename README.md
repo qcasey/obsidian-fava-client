@@ -1,92 +1,77 @@
-# Obsidian Sample Plugin
+# Fava client for Obsidian
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+A dashboard, embeddable cards and quick entry for a [Fava](https://beancount.github.io/fava/) (Beancount) ledger server, inside Obsidian. Works on desktop, tablet and phone.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+It is a port of a personal Next.js dashboard: the same metrics (net worth, survival runway, burn, breakeven, recurring charges, savings envelopes…) rendered as native Obsidian views with no React, no chart library and no runtime dependencies.
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
+## What you get
 
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open modal (simple)" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and outputs a Notice on click.
-- Registers a global interval which logs 'setInterval' to the console.
+- **Dashboard** (ribbon icon or `Open dashboard`): one scrollable page of collapsible sections — Health, Personal, Business, Net worth & runway, Fixed commitments. Cards show one number plus a line of context; tap a card to expand the detail. The grid goes 1 → 2 → 3 columns with the pane width.
+- **Cards in notes**: a fenced `fava` code block renders any dashboard card inside a note.
+- **Inline values**: `` `fava:net-worth` `` in running text renders the live number.
+- **Quick entry** (`Add entry`): payee/account autocomplete, split tender, refund and uncertain flags, duplicate warning, exact-alignment preview, appended to the current year's ledger file through Fava's source API.
+- **Interpreter**: paste an alert email or receipt to prefill the form heuristically. With an optional local Ollama server you also get AI parse and screenshot import.
 
-## First time developing plugins?
+## Requirements
 
-Quick starting guide for new plugin devs:
+- A running Fava instance reachable from the device. **Fava has no authentication** — keep it on your LAN or behind a VPN. The plugin talks only to the Fava URL (and, if configured, the Ollama URL) you enter in settings. Nothing else leaves the device.
+- Obsidian 1.7.2 or newer.
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `src/main.ts` to `main.js`.
-- Make changes to `src/main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+## Settings
 
-## Releasing new releases
+| Setting | Meaning |
+|---|---|
+| Fava URL | Base URL including the ledger slug, e.g. `http://192.168.1.8:5051/quinns-beans` |
+| Public URL | Optional browser-facing URL for "Open in Fava" links |
+| Cache lifetime | Seconds before the dashboard refetches on its own (manual refresh any time) |
+| Hours worked per week | Drives the hours-to-buy card |
+| Ollama URL / models | Optional; enables AI parse and screenshot import |
+| Domain config override | JSON overriding account names, thresholds, envelopes, survival-mode rules and interpreter mappings. Objects merge, arrays replace. Use the reset button to see the full default shape. |
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Cards
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+````markdown
+```fava
+card: envelope
+label: Home Downpayment
+```
+````
 
-## Adding your plugin to the community plugin list
+| Card | Options |
+|---|---|
+| `metric` | `key` (dotted path, e.g. `personal.liquid`), `label`, `format`, `status`, `detail` |
+| `net-worth` | `sparkline` (true), `months` (24) |
+| `runway`, `surplus`, `business-cash`, `business-net`, `verdict`, `envelopes`, `composition`, `liabilities-band`, `survival-opex` | — |
+| `breakeven` | `organic` (true) |
+| `trend` | `side` personal \| business |
+| `burn` | `mode` all-in \| lifestyle \| both, `categories` (true) |
+| `envelope` | `label` or `account` |
+| `recurring` | `side` personal \| business \| both, `kind` expense \| income \| all, `limit`, `collapsed` |
+| `upcoming` | `side`, `forecast` (true) |
+| `spend-ring` | `view` general \| specific, `toggle` (true) |
+| `category-bars` | `lifestyle`, `perDay` (true), `limit` |
+| `category-pace` | `limit` (8) |
+| `monthly-bars` | `side`, `months` (12) |
+| `qtd` | `side` personal \| business \| both |
+| `hours-to-buy` | `price` |
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+The `Insert card` command pastes a block with the options commented.
 
-## How to use
+## Inline values
 
-- Clone this repo.
-- Make sure your NodeJS is at least v18 (`node --version`).
-- `npm i` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
+`` `fava:<alias>` `` or `` `fava:<alias>|<format>` ``. Aliases: `net-worth`, `net-worth.3mo`, `net-worth.6mo`, `runway`, `runway.biz`, `runway.personal`, `personal-runway`, `surplus`, `savings-rate`, `income`, `spend`, `burn`, `burn.lifestyle`, `liquid`, `efund`, `biz-cash`, `days-of-cash`, `breakeven`, `revenue`, `opex`, `biz-net`, `hard-liabilities`, `outstanding`, `organic-floor`, `fixed.personal`, `fixed.business`, `upcoming.net30`, `forecast.30d`, `last-entry-days`, `envelope.<label-slug>[.balance|.target|.pct|.delta]` (e.g. `envelope.home-downpayment.pct`), `status.<key>`, or any dotted metrics path such as `personal.monthlySpend`. Formats: `money`, `signed`, `compact`, `pct`, `months`, `days`, `ratio`, `int`, `perMonth`, `perDay`.
 
-## Manually installing the plugin
+The `Insert or copy inline value` command lists them.
 
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
+## Development
 
-## Improve code quality with eslint
-
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code.
-- This project already has eslint preconfigured, you can invoke a check by running`npm run lint`
-- Together with a custom eslint [plugin](https://github.com/obsidianmd/eslint-plugin) for Obsidan specific code guidelines.
-- A GitHub action is preconfigured to automatically lint every commit on all branches.
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-	"fundingUrl": "https://buymeacoffee.com"
-}
+```bash
+npm install
+npm run dev          # watch build → main.js
+npm run build        # typecheck + minified build
+npm run lint
 ```
 
-If you have multiple URLs, you can also do:
+Load into a vault by symlinking the repo into `<vault>/.obsidian/plugins/fava-client`, or set `OBSIDIAN_VAULT=/path/to/vault` (env or `.env`) and run `npm run copy-to-vault` after each build. Enable the plugin under **Settings → Community plugins**.
 
-```json
-{
-	"fundingUrl": {
-		"Buy Me a Coffee": "https://buymeacoffee.com",
-		"GitHub Sponsor": "https://github.com/sponsors",
-		"Patreon": "https://www.patreon.com/"
-	}
-}
-```
-
-## API Documentation
-
-See https://docs.obsidian.md
+Domain constants live in `src/lib/config.ts` and mirror the ledger repo's `healthcheck.py`; keep them in sync.

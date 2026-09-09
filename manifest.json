@@ -1,11 +1,10 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
-	"version": "1.0.0",
-	"minAppVersion": "1.0.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"id": "fava-client",
+	"name": "Fava client",
+	"version": "0.1.0",
+	"minAppVersion": "1.7.2",
+	"description": "Dashboard, embeddable cards and quick entry for a Fava (Beancount) ledger server.",
+	"author": "Quinn Casey",
+	"authorUrl": "https://github.com/qcasey",
 	"isDesktopOnly": false
 }

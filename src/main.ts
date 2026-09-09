@@ -1,114 +1,82 @@
-import {
-	Editor,
-	MarkdownView,
-	MarkdownFileInfo,
-	Modal,
-	Notice,
-	Plugin,
-} from 'obsidian';
-import {
-	DEFAULT_SETTINGS,
-	MyPluginSettings,
-	SampleSettingTab,
-} from './settings';
+// Plugin entry point: lifecycle wiring only. Feature logic lives in modules.
 
-// Remember to rename these classes and interfaces!
+import { Plugin, type WorkspaceLeaf } from 'obsidian';
+import { registerCommands, registerRibbon } from './commands';
+import { DataStore } from './data/store';
+import { DEFAULT_DOMAIN_CONFIG, resolveDomainConfig, type DomainConfig } from './lib/config';
+import { FavaClient } from './lib/fava-client';
+import { makeFavaLinks, type FavaLinks } from './lib/fava-links';
+import { DEFAULT_SETTINGS, MIN_CACHE_TTL_SECONDS, type FavaSettings } from './settings';
+import { registerFavaCodeBlock } from './ui/code-block';
+import { FavaDashboardView, VIEW_TYPE_FAVA_DASHBOARD } from './ui/dashboard-view';
+import { registerFavaInline } from './ui/inline-processor';
+import { QuickEntryModal } from './ui/quick-entry-modal';
+import { FavaSettingTab } from './ui/settings-tab';
 
-export default class MyPlugin extends Plugin {
-	settings!: MyPluginSettings;
+export default class FavaClientPlugin extends Plugin {
+	settings: FavaSettings = { ...DEFAULT_SETTINGS };
+	domainConfig: DomainConfig = DEFAULT_DOMAIN_CONFIG;
+	client!: FavaClient;
+	store!: DataStore;
 
-	async onload() {
+	get links(): FavaLinks {
+		return makeFavaLinks(this.settings.publicUrl || this.settings.favaUrl, this.domainConfig);
+	}
+
+	get aiEnabled(): boolean {
+		return this.settings.ollamaUrl.trim() !== '';
+	}
+
+	async onload(): Promise<void> {
 		await this.loadSettings();
-
-		// This creates an icon in the left ribbon.
-		this.addRibbonIcon('dice', 'Sample', (_evt: MouseEvent) => {
-			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+		this.client = new FavaClient(() => this.settings.favaUrl);
+		this.store = new DataStore(this.client, {
+			cfg: () => this.domainConfig,
+			ttlMs: () => this.settings.cacheTtlSeconds * 1000,
 		});
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText('Status bar text');
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: 'open-modal-simple',
-			name: 'Open modal (simple)',
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: 'replace-selected',
-			name: 'Replace selected content',
-			editorCallback: (
-				editor: Editor,
-				_ctx: MarkdownView | MarkdownFileInfo,
-			) => {
-				editor.replaceSelection('Sample editor command');
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: 'open-modal-complex',
-			name: 'Open modal (complex)',
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-				return false;
-			},
-		});
-
-		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(activeDocument, 'click', (_evt: MouseEvent) => {
-			new Notice('Click');
-		});
-
-		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
-		this.registerInterval(
-			window.setInterval(() => console.log('setInterval'), 5 * 60 * 1000),
-		);
+		this.registerView(VIEW_TYPE_FAVA_DASHBOARD, (leaf) => new FavaDashboardView(leaf, this));
+		registerFavaCodeBlock(this);
+		registerFavaInline(this);
+		registerCommands(this);
+		registerRibbon(this);
+		this.addSettingTab(new FavaSettingTab(this.app, this));
 	}
 
-	onunload() {}
-
-	async loadSettings() {
-		this.settings = Object.assign(
-			{},
-			DEFAULT_SETTINGS,
-			(await this.loadData()) as Partial<MyPluginSettings>,
-		);
+	onunload(): void {
+		// Views, processors and events are cleaned up by the register* helpers.
 	}
 
-	async saveSettings() {
+	async loadSettings(): Promise<void> {
+		const data = (await this.loadData()) as Partial<FavaSettings> | null;
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, data ?? {});
+		// A full load takes Fava 10–20 s; never let the TTL undercut that.
+		this.settings.cacheTtlSeconds = Math.max(MIN_CACHE_TTL_SECONDS, this.settings.cacheTtlSeconds);
+		this.domainConfig = resolveDomainConfig(this.settings.advancedConfigJson);
+	}
+
+	/**
+	 * Persist settings. Pass `invalidate` when the change affects fetched data
+	 * (URL, TTL, domain config); otherwise consumers just re-render.
+	 */
+	async saveSettings(opts: { invalidate?: boolean } = {}): Promise<void> {
 		await this.saveData(this.settings);
-	}
-}
-
-class SampleModal extends Modal {
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText('Woah!');
+		this.domainConfig = resolveDomainConfig(this.settings.advancedConfigJson);
+		if (opts.invalidate) this.store.invalidate();
+		else this.store.notify();
 	}
 
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
+	async activateDashboard(): Promise<void> {
+		const { workspace } = this.app;
+		let leaf: WorkspaceLeaf | null = workspace.getLeavesOfType(VIEW_TYPE_FAVA_DASHBOARD)[0] ?? null;
+		if (!leaf) {
+			leaf = workspace.getLeaf(false);
+			await leaf.setViewState({ type: VIEW_TYPE_FAVA_DASHBOARD, active: true });
+		}
+		await workspace.revealLeaf(leaf);
+	}
+
+	openQuickEntry(): void {
+		new QuickEntryModal(this).open();
 	}
 }
