@@ -691,12 +691,10 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-preview-box__kind { margin-left: auto; margin-right: 8px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
 
 /* ── Entry form: split/swap row, cash button, deep-link docs ── */
-.fava-entry__between { display: flex; justify-content: center; align-items: center; gap: 20px; margin: -4px 0 calc(-1 * var(--size-4-2) + 2px); }
+.fava-entry__between { display: flex; justify-content: center; align-items: center; gap: 20px; height: 20px; margin: -6px 0 -8px; }
 .fava-entry__between .fava-entry__split-link { margin: 0; align-self: center; color: var(--text-faint) !important; }
 .fava-entry__between .fava-entry__split-link:hover { color: var(--text-normal) !important; }
-.fava-entry__swap { color: var(--text-faint); padding: 6px; }
-.fava-entry__swap:hover { color: var(--text-normal); }
-.fava-entry__swap svg { width: 16px; height: 16px; }
+.fava-entry__swap { padding: 0; }
 .fava-addentry__cash { color: var(--text-muted); }
 .fava-settings__deeplink { font-size: var(--font-ui-small); color: var(--text-muted); margin-top: -6px; }
 .fava-settings__deeplink ul { margin: 4px 0 8px; padding-left: 1.2em; }

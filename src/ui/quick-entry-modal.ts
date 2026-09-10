@@ -243,10 +243,12 @@ export class QuickEntryModal extends Modal {
 		this.owner.registerDomEvent(this.splitLink, 'click', () => this.setSplit(true));
 
 		const swap = between.createEl('button', {
-			cls: 'clickable-icon fava-entry__swap',
+			cls: 'fava-entry__split-link fava-entry__swap',
 			attr: { type: 'button', 'aria-label': 'Swap paid with and category' },
 		});
-		setIcon(swap, 'arrow-up-down');
+		const swapIcon = swap.createSpan({ cls: 'fava-entry__split-icon' });
+		setIcon(swapIcon, 'arrow-up-down');
+		swap.createSpan({ text: 'Swap' });
 		this.owner.registerDomEvent(swap, 'click', () => {
 			const f = this.fields.funding.input;
 			const c = this.fields.category.input;

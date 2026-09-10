@@ -9,7 +9,7 @@ import { FavaClient, type LedgerMeta, type QueryRunner } from '../lib/fava-clien
 import { computeMetrics } from '../lib/metrics';
 import { computeRecurring } from '../lib/recurring';
 import type { Snapshot } from '../types';
-import { QueryCache, cacheKey } from './query-cache';
+import { QueryCache, keyParts, type KeyParts } from './query-cache';
 
 export type StoreStatus = 'idle' | 'loading' | 'ready' | 'error';
 
@@ -139,7 +139,7 @@ export class DataStore extends Events {
 	private computeFromCache(loadedAt: number): Promise<Snapshot> {
 		const runner: QueryRunner = {
 			runQuery: (bql) => {
-				const rows = this.cache.get(cacheKey(bql));
+				const rows = this.cache.getNear(keyParts(bql));
 				return rows ? Promise.resolve(rows) : Promise.reject(new Error('cache miss'));
 			},
 		};
@@ -178,20 +178,20 @@ export class DataStore extends Events {
 			}, RECOMPUTE_DEBOUNCE_MS);
 		};
 
-		const fetchOne = (bql: string, key: string): Promise<void> => {
-			let p = fetches.get(key);
+		const fetchOne = (bql: string, parts: KeyParts): Promise<void> => {
+			let p = fetches.get(parts.key);
 			if (!p) {
 				p = this.client
 					.runQuery(bql)
 					.then((rows) => {
-						this.cache.set(key, rows);
-						fresh.add(key);
+						this.cache.set(parts, rows);
+						fresh.add(parts.key);
 						scheduleRecompute();
 					})
 					.catch((e: unknown) => {
 						firstError ??= e instanceof Error ? e : new Error(String(e));
 					});
-				fetches.set(key, p);
+				fetches.set(parts.key, p);
 			}
 			return p;
 		};
@@ -200,13 +200,15 @@ export class DataStore extends Events {
 		// for the live query when nothing is cached yet.
 		const runner: QueryRunner = {
 			runQuery: async (bql) => {
-				const key = cacheKey(bql);
-				seen.add(key);
-				const p = fetchOne(bql, key);
-				const cached = this.cache.get(key);
-				if (cached && !fresh.has(key)) return cached;
+				const parts = keyParts(bql);
+				seen.add(parts.key);
+				const p = fetchOne(bql, parts);
+				if (!fresh.has(parts.key)) {
+					const stale = this.cache.getNear(parts);
+					if (stale) return stale;
+				}
 				await p;
-				const rows = this.cache.get(key);
+				const rows = this.cache.get(parts.key);
 				if (!rows) throw firstError instanceof Error ? firstError : new Error('Query failed');
 				return rows;
 			},
