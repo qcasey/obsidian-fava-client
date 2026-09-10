@@ -201,7 +201,8 @@
 .fava-kv.is-strong { font-weight: 600; }
 .fava-note { font-size: var(--font-ui-smaller); color: var(--text-muted); line-height: 1.4; }
 .fava-subhead { font-size: var(--font-ui-smaller); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-faint); margin-top: 4px; }
-.fava-bar { height: 8px; border-radius: 4px; background: var(--fava-muted); overflow: hidden; flex: 1; }
+.fava-bar { height: 8px; min-height: 8px; width: 100%; border-radius: 4px; background: var(--fava-muted); overflow: hidden; flex: 0 0 auto; }
+.fava-barrow > .fava-bar { flex: 1 1 0; width: auto; }
 .fava-bar__fill { height: 100%; width: var(--fava-pct, 0%); border-radius: 4px; background: var(--text-muted); transition: width 200ms ease; }
 .fava-bar__fill.is-red { background: var(--color-red); }
 .fava-bar__fill.is-green { background: var(--color-green); }
@@ -415,18 +416,23 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 
 .fava-entry__split-link {
 	justify-self: start;
+	align-self: flex-start;
 	display: inline-flex;
 	align-items: center;
-	gap: var(--size-2-1);
-	background: none;
-	box-shadow: none;
-	padding: 0 var(--size-2-1);
+	gap: 4px;
+	margin: -4px 0 0;
+	padding: 0;
+	height: auto;
+	background: none !important;
+	border: none !important;
+	box-shadow: none !important;
 	color: var(--text-muted);
-	font-size: var(--font-ui-smaller);
+	font-size: var(--font-ui-small);
+	cursor: pointer;
 }
-
 .fava-entry__split-link:hover {
 	color: var(--text-normal);
+	text-decoration: underline;
 }
 
 .fava-entry__split-icon svg {
@@ -475,8 +481,9 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 }
 
 .fava-entry__toggles .setting-item {
-	border: none;
-	padding: var(--size-2-1) 0;
+	border-top: none !important;
+	padding: 4px 0 !important;
+	margin: 0;
 }
 
 .fava-entry__toggles .setting-item-name {
