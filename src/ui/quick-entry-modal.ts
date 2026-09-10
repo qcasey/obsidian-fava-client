@@ -239,7 +239,7 @@ export class QuickEntryModal extends Modal {
 		});
 		const plus = this.splitLink.createSpan({ cls: 'fava-entry__split-icon' });
 		setIcon(plus, 'plus');
-		this.splitLink.createSpan({ text: 'Split tender' });
+		this.splitLink.createSpan({ text: 'Split' });
 		this.owner.registerDomEvent(this.splitLink, 'click', () => this.setSplit(true));
 
 		const swap = between.createEl('button', {
@@ -439,7 +439,7 @@ export class QuickEntryModal extends Modal {
 	}
 
 	private isComplete(d: EntryDraft): boolean {
-		return d.fundings.length > 0 && !!d.payee.trim() && !!d.category.trim() && !!d.date;
+		return d.fundings.length > 0 && !!(d.payee.trim() || d.narration.trim()) && !!d.category.trim() && !!d.date;
 	}
 
 	/**

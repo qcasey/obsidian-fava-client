@@ -24,7 +24,9 @@ export function formatEntry(d: EntryDraft, width: number): string {
 	const narration = d.refund
 		? `${quote(d.narration)}${d.narration.trim() ? ' ' : ''}(REFUND)`
 		: quote(d.narration);
-	const lines = [`${d.date} ${d.flag} "${quote(d.payee)}" "${narration}"`];
+	// Beancount: one string is a narration-only transaction; two are payee + narration.
+	const payee = quote(d.payee);
+	const lines = [payee ? `${d.date} ${d.flag} "${payee}" "${narration}"` : `${d.date} ${d.flag} "${narration}"`];
 	for (const f of d.fundings) {
 		const amt = normalizeAmount(f.amount);
 		const signed = d.refund ? amt : `-${amt}`;

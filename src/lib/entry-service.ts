@@ -113,7 +113,7 @@ export function validateDraft(draft: EntryDraft, accounts: string[]): string | n
 	}
 	if (draft.flag !== '*' && draft.flag !== '!') return 'Invalid flag';
 	const payee = draft.payee.trim();
-	if (!payee) return 'Payee is required';
+	if (!payee && !draft.narration.trim()) return 'Enter a payee or a narration';
 	if (payee.length > 200) return 'Payee is too long';
 	if (draft.narration.length > 300) return 'Narration is too long';
 	if (draft.fundings.length < 1) return 'Add a funding account and amount';
