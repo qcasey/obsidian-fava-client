@@ -699,3 +699,11 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-settings__deeplink { font-size: var(--font-ui-small); color: var(--text-muted); margin-top: -6px; }
 .fava-settings__deeplink ul { margin: 4px 0 8px; padding-left: 1.2em; }
 .fava-settings__deeplink pre { white-space: pre-wrap; word-break: break-all; font-size: var(--font-smaller); }
+
+/* Time and money card: price ⇄ minutes */
+.fava-hours__suffix { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
+.fava-hours__input:not(.is-time) .fava-hours__suffix { display: none; }
+.fava-hours__input.is-time .fava-hours__prefix { display: none; }
+.fava-hours__input.is-time input { padding-left: 0.6em; padding-right: 2.8em; }
+.fava-hours__swap { margin-left: auto; flex-shrink: 0; color: var(--text-faint); }
+.fava-hours__swap:hover { color: var(--text-normal); }

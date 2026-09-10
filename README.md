@@ -53,7 +53,7 @@ label: Home Downpayment
 | `category-pace` | `limit` (8) |
 | `monthly-bars` | `side`, `months` (12) |
 | `qtd` | `side` personal \| business \| both |
-| `hours-to-buy` | `price` |
+| `hours-to-buy` | `price`, `mode` money \| time |
 
 The `Insert card` command pastes a block with the options commented.
 

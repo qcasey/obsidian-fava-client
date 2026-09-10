@@ -1,3 +1,4 @@
+import { setIcon, setTooltip } from 'obsidian';
 // Headline metric cards. Each shows one number plus at most two supporting
 // figures; everything else lives in the expandable body.
 
@@ -232,40 +233,81 @@ export const trendCard: CardDef = {
 
 export const hoursToBuyCard: CardDef = {
 	id: 'hours-to-buy',
-	title: 'How many hours is that?',
-	desc: 'Type a price, see the after-tax work time it costs.',
-	params: [{ name: 'price', kind: 'number', desc: 'Prefill a price' }],
+	title: 'Time and money',
+	desc: 'Turn a price into work time, or a span of time into what it is worth.',
+	params: [
+		{ name: 'price', kind: 'number', desc: 'Prefill a price' },
+		{ name: 'mode', kind: { enum: ['money', 'time'] }, default: 'money', desc: 'Start on price to time, or time to price' },
+	],
 	render(el, ctx, p) {
 		const { personal: pm, trailing } = ctx.snapshot.metrics;
-		const hours = ctx.settings.hoursPerWeek;
-		const hoursPerMonth = hours * WEEKS_PER_MONTH;
+		const hoursPerWeek = ctx.settings.hoursPerWeek;
+		const hoursPerMonth = hoursPerWeek * WEEKS_PER_MONTH;
 		const afterTax = (pm.monthlyIncomeTrailing - pm.taxMoTrailing) / hoursPerMonth;
 		const gross = pm.monthlyIncomeTrailing / hoursPerMonth;
-		const shell = cardShell(el, {
-			label: 'How many hours is that?',
-			toggle: { key: key(ctx, 'hours'), ui: ctx.ui },
-		});
-		const row = shell.header.querySelector('.fava-card__main');
-		const form = (row instanceof HTMLElement ? row : shell.card).createDiv({ cls: 'fava-hours' });
+
+		// Direction is remembered as a flip of the configured default.
+		const modeKey = key(ctx, 'hours-mode');
+		const defaultTime = str(p, 'mode') === 'time';
+		let timeMode = ctx.ui.isExpanded(modeKey) !== defaultTime;
+		const labelFor = () => (timeMode ? 'What is that time worth?' : 'How many hours is that?');
+
+		const shell = cardShell(el, { label: labelFor(), toggle: { key: key(ctx, 'hours'), ui: ctx.ui } });
+		const labelEl = shell.header.querySelector<HTMLElement>('.fava-card__label span');
+		const main = shell.header.querySelector<HTMLElement>('.fava-card__main');
+		const form = (main ?? shell.card).createDiv({ cls: 'fava-hours' });
+
 		const inputWrap = form.createDiv({ cls: 'fava-hours__input' });
 		inputWrap.createSpan({ text: '$', cls: 'fava-hours__prefix' });
 		const input = inputWrap.createEl('input', {
 			type: 'text',
-			attr: { inputmode: 'decimal', placeholder: '0', 'aria-label': 'Price in dollars', 'data-persist': `${ctx.keyPrefix}:hours-price` },
+			attr: { inputmode: 'decimal', placeholder: '0' },
 		});
+		inputWrap.createSpan({ text: 'min', cls: 'fava-hours__suffix' });
 		const out = form.createDiv({ cls: 'fava-hours__out' });
 		const big = out.createDiv({ cls: 'fava-card__value', text: '—' });
-		const small = out.createDiv({ cls: 'fava-card__detail', text: 'of after-tax work' });
+		const small = out.createDiv({ cls: 'fava-card__detail' });
+		const swap = form.createEl('button', { cls: 'clickable-icon fava-hours__swap', attr: { type: 'button' } });
+		setIcon(swap, 'arrow-left-right');
+
 		const update = () => {
-			const amount = Number(input.value.replace(/[^0-9.]/g, ''));
-			const valid = input.value.trim() !== '' && Number.isFinite(amount) && amount > 0 && afterTax > 0;
-			const total = valid ? amount / afterTax : 0;
-			big.setText(valid ? fmtDuration(total) : '—');
-			small.setText((valid && fmtWorkTime(total, hours)) || 'of after-tax work');
+			const n = Number(input.value.replace(/[^0-9.]/g, ''));
+			const valid = input.value.trim() !== '' && Number.isFinite(n) && n > 0 && afterTax > 0;
+			if (timeMode) {
+				big.setText(valid ? fmtMoney((n / 60) * afterTax) : '—');
+				small.setText(`at $${afterTax.toFixed(0)}/hr after tax`);
+			} else {
+				const worked = valid ? n / afterTax : 0;
+				big.setText(valid ? fmtDuration(worked) : '—');
+				small.setText((valid && fmtWorkTime(worked, hoursPerWeek)) || 'of after-tax work');
+			}
 		};
+
+		const applyMode = () => {
+			inputWrap.toggleClass('is-time', timeMode);
+			input.setAttr('placeholder', timeMode ? '20' : '0');
+			input.setAttr('aria-label', timeMode ? 'Minutes of work' : 'Price in dollars');
+			input.dataset.persist = `${ctx.keyPrefix}:hours-${timeMode ? 'minutes' : 'price'}`;
+			labelEl?.setText(labelFor());
+			const hint = timeMode ? 'Switch to price to time' : 'Switch to time to price';
+			swap.setAttr('aria-label', hint);
+			setTooltip(swap, hint);
+			update();
+		};
+
+		const kept = { money: '', time: '' };
+		ctx.component.registerDomEvent(swap, 'click', () => {
+			kept[timeMode ? 'time' : 'money'] = input.value;
+			timeMode = !timeMode;
+			ctx.ui.toggle(modeKey);
+			input.value = kept[timeMode ? 'time' : 'money'];
+			applyMode();
+			input.focus();
+		});
+
 		const preset = num(p, 'price', 0);
-		if (preset > 0) input.value = String(preset);
-		update();
+		if (preset > 0 && !timeMode) input.value = String(preset);
+		applyMode();
 		ctx.component.registerDomEvent(input, 'input', update);
 
 		kv(shell.body, 'After tax', `$${afterTax.toFixed(0)}/hr`, { strong: true });
@@ -274,10 +316,10 @@ export const hoursToBuyCard: CardDef = {
 		const sliderRow = shell.body.createDiv({ cls: 'fava-slider' });
 		const sliderLabel = sliderRow.createDiv({ cls: 'fava-kv is-muted' });
 		sliderLabel.createSpan({ cls: 'fava-kv__label', text: 'Hours worked per week' });
-		const hoursOut = sliderLabel.createSpan({ cls: 'fava-kv__value', text: `${hours} h` });
+		const hoursOut = sliderLabel.createSpan({ cls: 'fava-kv__value', text: `${hoursPerWeek} h` });
 		const slider = sliderRow.createEl('input', {
 			type: 'range',
-			attr: { min: '10', max: '80', step: '1', value: String(hours), 'aria-label': 'Hours worked per week' },
+			attr: { min: '10', max: '80', step: '1', value: String(hoursPerWeek), 'aria-label': 'Hours worked per week' },
 		});
 		ctx.component.registerDomEvent(slider, 'input', () => hoursOut.setText(`${slider.value} h`));
 		ctx.component.registerDomEvent(slider, 'change', () => ctx.setHoursPerWeek(Number(slider.value)));
