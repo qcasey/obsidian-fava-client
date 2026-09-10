@@ -1,13 +1,14 @@
 // Single source of truth for cards: dashboard sections and ```fava blocks both
 // render through here.
 
-import { parseYaml } from 'obsidian';
+import { parseYaml, setIcon } from 'obsidian';
+import { ACTION_CARDS } from './action-cards';
 import { CHART_CARDS } from './chart-cards';
 import { LIST_CARDS } from './list-cards';
 import { METRIC_CARDS } from './metric-cards';
 import type { CardContext, CardDef, Params, ParamValue } from './types';
 
-export const CARDS: CardDef[] = [...METRIC_CARDS, ...LIST_CARDS, ...CHART_CARDS];
+export const CARDS: CardDef[] = [...METRIC_CARDS, ...LIST_CARDS, ...CHART_CARDS, ...ACTION_CARDS];
 
 export function getCard(id: string): CardDef | undefined {
 	return CARDS.find((c) => c.id === id);
@@ -96,6 +97,10 @@ export function renderCard(parent: HTMLElement, def: CardDef, ctx: CardContext, 
 	el.dataset.card = def.id;
 	try {
 		def.render(el, ctx, params);
+		if (ctx.updating && !el.hasClass('fava-card--hidden')) {
+			const badge = el.createDiv({ cls: 'fava-card__updating', attr: { 'aria-label': 'Updating' } });
+			setIcon(badge, 'loader-2');
+		}
 	} catch (e) {
 		el.empty();
 		el.addClass('fava-card', 'fava-error');

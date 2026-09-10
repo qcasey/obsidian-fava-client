@@ -661,3 +661,23 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 }
 .fava-loading { margin-top: var(--size-4-2); }
 .fava-error pre.fava-error__msg { white-space: pre-wrap; font-size: var(--font-ui-smaller); background: transparent; padding: 0; margin: 6px 0 0; }
+
+/* ── Updating badge, overview, add-transaction ── */
+.fava-card { position: relative; }
+.fava-card__updating {
+	position: absolute;
+	right: 8px;
+	bottom: 6px;
+	display: inline-flex;
+	align-items: center;
+	color: var(--text-faint);
+	pointer-events: none;
+}
+.fava-card__updating svg { width: 14px; height: 14px; animation: fava-spin 1s linear infinite; }
+.fava-section--overview { margin-top: var(--size-4-2); }
+.fava-addentry { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+.fava-addentry__input { flex: 1; width: auto; }
+.fava-addentry__input input { font-size: 1.1em; }
+.fava-addentry__btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; flex-shrink: 0; }
+.is-mobile .fava-addentry__btn { width: 44px; height: 44px; }
+@media (prefers-reduced-motion: reduce) { .fava-card__updating svg { animation: none; } }

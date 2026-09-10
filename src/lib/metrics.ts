@@ -5,7 +5,7 @@ import { BQL } from './bql';
 import type { DomainConfig } from './config';
 import { cell } from './csv';
 import { daysBetween, monthInfo, monthsAgo, monthsElapsed, quarterInfo, todayISO } from './dates';
-import type { FavaClient } from './fava-client';
+import type { QueryRunner } from './fava-client';
 import { computeBusiness, computeComposition } from './metrics-business';
 import { computeEnvelopes, computePersonal } from './metrics-personal';
 import {
@@ -22,7 +22,7 @@ import type { Metrics, Status } from '../types';
 
 const NW_REGEX = /^(Assets|Liabilities):(Personal|PhotoPanda):/;
 
-export async function computeMetrics(client: FavaClient, cfg: DomainConfig): Promise<Metrics> {
+export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Promise<Metrics> {
 	const a = cfg.accounts;
 	const t = cfg.thresholds;
 	const today = todayISO();

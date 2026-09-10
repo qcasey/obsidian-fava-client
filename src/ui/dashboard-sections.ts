@@ -8,6 +8,8 @@ import type { Snapshot } from '../types';
 export interface SectionDef {
 	id: string;
 	title: string;
+	/** No header, never collapses (the overview) */
+	headerless?: boolean;
 	cards: { id: string; params?: Params }[];
 	/** One-line summary shown in the header while collapsed */
 	summary?: (s: Snapshot) => string;
@@ -15,9 +17,11 @@ export interface SectionDef {
 
 export const SECTIONS: SectionDef[] = [
 	{
-		id: 'health',
-		title: 'Health',
+		id: 'overview',
+		title: 'Overview',
+		headerless: true,
 		cards: [
+			{ id: 'add-entry' },
 			{ id: 'verdict' },
 			{ id: 'net-worth' },
 			{ id: 'runway' },

@@ -20,6 +20,11 @@ export class FavaError extends Error {
 	}
 }
 
+/** Anything that can answer BQL — the live client or a cache in front of it. */
+export interface QueryRunner {
+	runQuery(bql: string): Promise<string[][]>;
+}
+
 export interface LedgerMeta {
 	accounts: string[];
 	payees: string[];
@@ -34,7 +39,8 @@ export interface SourceFile {
 	source: string;
 }
 
-const REQUEST_TIMEOUT_MS = 20_000;
+// Fava answers queries one at a time, so a request can legitimately queue a while.
+const REQUEST_TIMEOUT_MS = 60_000;
 /** Fava is a small single-process server; too many parallel queries slow it down. */
 export const DEFAULT_CONCURRENCY = 6;
 

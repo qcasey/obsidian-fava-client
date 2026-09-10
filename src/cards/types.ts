@@ -7,6 +7,10 @@ import type { FavaLinks } from '../lib/fava-links';
 import type { FavaSettings } from '../settings';
 import type { Snapshot } from '../types';
 
+export interface QuickEntryPrefill {
+	amount?: string;
+}
+
 export type ParamValue = string | number | boolean;
 export type Params = Record<string, ParamValue>;
 export type ParamKind = 'string' | 'number' | 'boolean' | { enum: readonly string[] };
@@ -37,7 +41,9 @@ export interface CardContext {
 	keyPrefix: string;
 	/** True on the dashboard, false for cards embedded in notes */
 	inDashboard: boolean;
-	openQuickEntry(): void;
+	/** A background refresh is replacing the visible snapshot */
+	updating: boolean;
+	openQuickEntry(opts?: QuickEntryPrefill): void;
 	setHoursPerWeek(v: number): void;
 }
 

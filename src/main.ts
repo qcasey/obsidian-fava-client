@@ -2,7 +2,8 @@
 
 import { Plugin, type WorkspaceLeaf } from 'obsidian';
 import { registerCommands, registerRibbon } from './commands';
-import { DataStore } from './data/store';
+import type { QuickEntryPrefill } from './cards/types';
+import { DataStore, type CachePersistence } from './data/store';
 import { DEFAULT_DOMAIN_CONFIG, resolveDomainConfig, type DomainConfig } from './lib/config';
 import { FavaClient } from './lib/fava-client';
 import { makeFavaLinks, type FavaLinks } from './lib/fava-links';
@@ -33,7 +34,10 @@ export default class FavaClientPlugin extends Plugin {
 		this.store = new DataStore(this.client, {
 			cfg: () => this.domainConfig,
 			ttlMs: () => this.settings.cacheTtlSeconds * 1000,
+			persist: this.cachePersistence(),
 		});
+		// Stale numbers beat a spinner: restore last session's query cache.
+		this.app.workspace.onLayoutReady(() => void this.store.hydrate());
 
 		this.registerView(VIEW_TYPE_FAVA_DASHBOARD, (leaf) => new FavaDashboardView(leaf, this));
 		registerFavaCodeBlock(this);
@@ -45,6 +49,19 @@ export default class FavaClientPlugin extends Plugin {
 
 	onunload(): void {
 		// Views, processors and events are cleaned up by the register* helpers.
+	}
+
+	/** Query cache lives next to data.json in the plugin folder. */
+	private cachePersistence(): CachePersistence {
+		const adapter = this.app.vault.adapter;
+		const path = `${this.manifest.dir ?? `${this.app.vault.configDir}/plugins/${this.manifest.id}`}/cache.json`;
+		return {
+			read: async () => ((await adapter.exists(path)) ? adapter.read(path) : null),
+			write: (text) => adapter.write(path, text),
+			remove: async () => {
+				if (await adapter.exists(path)) await adapter.remove(path);
+			},
+		};
 	}
 
 	async loadSettings(): Promise<void> {
@@ -76,7 +93,7 @@ export default class FavaClientPlugin extends Plugin {
 		await workspace.revealLeaf(leaf);
 	}
 
-	openQuickEntry(): void {
-		new QuickEntryModal(this).open();
+	openQuickEntry(opts?: QuickEntryPrefill): void {
+		new QuickEntryModal(this, opts).open();
 	}
 }

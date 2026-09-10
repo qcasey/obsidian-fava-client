@@ -6,7 +6,7 @@ import { BQL } from './bql';
 import type { DomainConfig } from './config';
 import { cell } from './csv';
 import { DAYS_PER_MONTH, addDays, daysBetween, monthsAgo, todayISO } from './dates';
-import { type FavaClient, parseNum } from './fava-client';
+import { type QueryRunner, parseNum } from './fava-client';
 import type { Cadence, RecurringItem, RecurringSummary, Side, UpcomingFlow } from '../types';
 
 const CADENCES: { name: Cadence; days: number; tol: number }[] = [
@@ -155,7 +155,7 @@ export function detectRecurring(rows: string[][], today: string): RecurringSumma
 }
 
 export async function computeRecurring(
-	client: FavaClient,
+	client: QueryRunner,
 	_cfg: DomainConfig,
 ): Promise<RecurringSummary> {
 	const today = todayISO();

@@ -251,7 +251,7 @@ export const hoursToBuyCard: CardDef = {
 		inputWrap.createSpan({ text: '$', cls: 'fava-hours__prefix' });
 		const input = inputWrap.createEl('input', {
 			type: 'text',
-			attr: { inputmode: 'decimal', placeholder: '0', 'aria-label': 'Price in dollars' },
+			attr: { inputmode: 'decimal', placeholder: '0', 'aria-label': 'Price in dollars', 'data-persist': `${ctx.keyPrefix}:hours-price` },
 		});
 		const out = form.createDiv({ cls: 'fava-hours__out' });
 		const big = out.createDiv({ cls: 'fava-card__value', text: '—' });

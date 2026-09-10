@@ -13,6 +13,7 @@ import {
 } from '../lib/entry-service';
 import { formatEntry } from '../lib/format-entry';
 import { todayISO } from '../lib/dates';
+import type { QuickEntryPrefill } from '../cards/types';
 import type FavaClientPlugin from '../main';
 import type { Confidence, EntryDraft, ParsedDraft, Side } from '../types';
 import { InterpreterPanel } from './interpreter-panel';
@@ -54,7 +55,10 @@ export class QuickEntryModal extends Modal {
 	/** Owns DOM listeners so they die with the modal (Modal itself isn't a Component). */
 	private readonly owner = new Component();
 
-	constructor(private readonly plugin: FavaClientPlugin) {
+	constructor(
+		private readonly plugin: FavaClientPlugin,
+		private readonly initial: QuickEntryPrefill = {},
+	) {
 		super(plugin.app);
 	}
 
@@ -159,6 +163,11 @@ export class QuickEntryModal extends Modal {
 		this.owner.registerDomEvent(this.splitFunding, 'input', () => this.sync());
 		this.owner.registerDomEvent(this.splitAmount, 'input', () => this.sync());
 
+		if (this.initial.amount) {
+			this.fields.amount.input.value = this.initial.amount;
+			// Amount is known: jump straight to who it was.
+			window.setTimeout(() => this.fields.payee.input.focus(), 0);
+		}
 		this.sync();
 		void this.loadAutocomplete();
 	}

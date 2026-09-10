@@ -7,8 +7,8 @@ import { fmtAgo } from '../lib/dates';
 import { FavaError } from '../lib/fava-client';
 import type FavaClientPlugin from '../main';
 import type { Snapshot } from '../types';
-import { SECTIONS } from './dashboard-sections';
-import { applyMasonry, iconButton, skeletonCard } from './dom';
+import { SECTIONS, type SectionDef } from './dashboard-sections';
+import { applyMasonry, iconButton, preserveInputs, skeletonCard } from './dom';
 
 export const VIEW_TYPE_FAVA_DASHBOARD = 'fava-dashboard';
 
@@ -53,6 +53,10 @@ export class FavaDashboardView extends ItemView {
 	}
 
 	private render(): void {
+		preserveInputs(this.root, () => this.renderInner());
+	}
+
+	private renderInner(): void {
 		const scroll = this.root.scrollTop;
 		this.root.empty();
 		const store = this.plugin.store;
@@ -143,13 +147,20 @@ export class FavaDashboardView extends ItemView {
 			component: this,
 			keyPrefix: 'dash',
 			inDashboard: true,
-			openQuickEntry: () => this.plugin.openQuickEntry(),
+			updating: this.plugin.store.updating,
+			openQuickEntry: (opts) => this.plugin.openQuickEntry(opts),
 			setHoursPerWeek: (v) => {
 				this.plugin.settings.hoursPerWeek = v;
 				void this.plugin.saveSettings();
 			},
 		};
 		for (const section of SECTIONS) {
+			if (section.headerless) {
+				const sec = this.root.createDiv({ cls: 'fava-section fava-section--overview' });
+				const grid = sec.createDiv({ cls: 'fava-grid' });
+				this.renderSectionCards(section, grid, ctx);
+				continue;
+			}
 			const collapsed = this.plugin.settings.collapsedSections[section.id] === true;
 			const sec = this.root.createDiv({ cls: `fava-section${collapsed ? ' is-collapsed' : ''}` });
 			const head = sec.createEl('button', {
@@ -170,14 +181,18 @@ export class FavaDashboardView extends ItemView {
 				this.plugin.settings.collapsedSections[section.id] = now;
 				void this.plugin.saveData(this.plugin.settings);
 			});
-			section.cards.forEach((c, i) => {
-				const def = getCard(c.id);
-				if (!def) return;
-				const params = coerceParams(def, c.params ?? {});
-				if (!params.ok) return;
-				renderCard(grid, def, { ...ctx, keyPrefix: `dash:${section.id}:${i}` }, params.params);
-			});
-			applyMasonry(grid, this);
+			this.renderSectionCards(section, grid, ctx);
 		}
+	}
+
+	private renderSectionCards(section: SectionDef, grid: HTMLElement, ctx: CardContext): void {
+		section.cards.forEach((c, i) => {
+			const def = getCard(c.id);
+			if (!def) return;
+			const params = coerceParams(def, c.params ?? {});
+			if (!params.ok) return;
+			renderCard(grid, def, { ...ctx, keyPrefix: `dash:${section.id}:${i}` }, params.params);
+		});
+		applyMasonry(grid, this);
 	}
 }

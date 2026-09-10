@@ -4,7 +4,7 @@ import { MarkdownRenderChild, type MarkdownPostProcessorContext } from 'obsidian
 import { CARDS, coerceParams, getCard, parseFavaBlock, renderCard } from '../cards/registry';
 import { SetCardUi, type CardContext, type CardDef, type Params } from '../cards/types';
 import type FavaClientPlugin from '../main';
-import { skeletonCard } from './dom';
+import { preserveInputs, skeletonCard } from './dom';
 
 export function registerFavaCodeBlock(plugin: FavaClientPlugin): void {
 	plugin.registerMarkdownCodeBlockProcessor('fava', (source, el, ctx: MarkdownPostProcessorContext) => {
@@ -53,6 +53,10 @@ class FavaCardChild extends MarkdownRenderChild {
 	}
 
 	private render(): void {
+		preserveInputs(this.containerEl, () => this.renderInner());
+	}
+
+	private renderInner(): void {
 		this.containerEl.empty();
 		const store = this.plugin.store;
 		if (!store.snapshot) {
@@ -72,7 +76,8 @@ class FavaCardChild extends MarkdownRenderChild {
 			component: this,
 			keyPrefix: 'embed',
 			inDashboard: false,
-			openQuickEntry: () => this.plugin.openQuickEntry(),
+			updating: store.updating,
+			openQuickEntry: (opts) => this.plugin.openQuickEntry(opts),
 			setHoursPerWeek: (v) => {
 				this.plugin.settings.hoursPerWeek = v;
 				void this.plugin.saveSettings();

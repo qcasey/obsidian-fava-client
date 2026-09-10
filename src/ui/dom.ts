@@ -167,6 +167,33 @@ export function applyMasonry(grid: HTMLElement, component: Component, minCol = 2
 	component.register(() => ro.disconnect());
 }
 
+/**
+ * Re-render `root` via `fn` while keeping what the user typed: inputs with a
+ * data-persist key get their value (and focus) restored afterwards.
+ */
+export function preserveInputs(root: HTMLElement, fn: () => void): void {
+	const saved = new Map<string, { value: string; focused: boolean; start: number | null; end: number | null }>();
+	root.querySelectorAll<HTMLInputElement>('input[data-persist]').forEach((i) => {
+		const k = i.dataset.persist;
+		if (!k) return;
+		saved.set(k, { value: i.value, focused: root.ownerDocument.activeElement === i, start: i.selectionStart, end: i.selectionEnd });
+	});
+	fn();
+	if (saved.size === 0) return;
+	root.querySelectorAll<HTMLInputElement>('input[data-persist]').forEach((i) => {
+		const s = i.dataset.persist ? saved.get(i.dataset.persist) : undefined;
+		if (!s) return;
+		if (i.value !== s.value) {
+			i.value = s.value;
+			i.dispatchEvent(new Event('input'));
+		}
+		if (s.focused) {
+			i.focus();
+			if (s.start !== null && s.end !== null && i.type === 'text') i.setSelectionRange(s.start, s.end);
+		}
+	});
+}
+
 export function skeletonCard(parent: HTMLElement): HTMLElement {
 	const card = parent.createDiv({ cls: 'fava-card fava-skeleton' });
 	card.createDiv({ cls: 'fava-skeleton__line is-short' });
