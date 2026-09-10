@@ -1,38 +1,43 @@
 // Right-click (desktop) or press-and-hold (touch) anywhere on Fava content
-// opens a small menu: refresh, add entry, open in Fava.
+// opens a small menu: copy the value under the pointer, or refresh.
 
-import { Menu, type Component } from 'obsidian';
+import { Menu, Notice, type Component } from 'obsidian';
 import type FavaClientPlugin from '../main';
 
 const LONG_PRESS_MS = 500;
 const MOVE_TOLERANCE_PX = 10;
 
 export function attachFavaMenu(el: HTMLElement, plugin: FavaClientPlugin, component: Component): void {
-	const open = (x: number, y: number) => {
+	const open = (x: number, y: number, target: EventTarget | null) => {
 		const menu = new Menu();
+		const text = copyTextFor(target);
 		menu.addItem((i) =>
 			i
-				.setTitle(plugin.store.status === 'loading' ? 'Refreshing…' : 'Refresh data')
+				.setTitle(text ? `Copy ${text.length > 24 ? `${text.slice(0, 24)}…` : text}` : 'Copy')
+				.setIcon('copy')
+				.setDisabled(!text)
+				.onClick(() => {
+					if (!text) return;
+					void navigator.clipboard.writeText(text).then(
+						() => new Notice('Copied'),
+						() => new Notice('Could not copy'),
+					);
+				}),
+		);
+		menu.addItem((i) =>
+			i
+				.setTitle(plugin.store.status === 'loading' ? 'Refreshing…' : 'Refresh')
 				.setIcon('refresh-cw')
 				.setDisabled(plugin.store.status === 'loading')
 				.onClick(() => void plugin.store.refresh().catch(() => undefined)),
 		);
-		menu.addItem((i) => i.setTitle('Add entry').setIcon('plus').onClick(() => plugin.openQuickEntry()));
-		if (plugin.links.enabled) {
-			menu.addItem((i) =>
-				i
-					.setTitle('Open in Fava')
-					.setIcon('external-link')
-					.onClick(() => window.open(plugin.links.netWorth(), '_blank')),
-			);
-		}
 		menu.showAtPosition({ x, y });
 	};
 
 	component.registerDomEvent(el, 'contextmenu', (evt) => {
 		if (isInteractive(evt.target)) return;
 		evt.preventDefault();
-		open(evt.clientX, evt.clientY);
+		open(evt.clientX, evt.clientY, evt.target);
 	});
 
 	// Press-and-hold for touch. Cancelled by movement (scrolling) or release.
@@ -48,9 +53,10 @@ export function attachFavaMenu(el: HTMLElement, plugin: FavaClientPlugin, compon
 		const t = evt.touches[0];
 		if (!t) return;
 		start = { x: t.clientX, y: t.clientY };
+		const target = evt.target;
 		timer = window.setTimeout(() => {
 			timer = null;
-			if (start) open(start.x, start.y);
+			if (start) open(start.x, start.y, target);
 			start = null;
 		}, LONG_PRESS_MS);
 	}, { passive: true });
@@ -61,6 +67,18 @@ export function attachFavaMenu(el: HTMLElement, plugin: FavaClientPlugin, compon
 	}, { passive: true });
 	component.registerDomEvent(el, 'touchend', cancel, { passive: true });
 	component.registerDomEvent(el, 'touchcancel', cancel, { passive: true });
+}
+
+/** The headline value of the card under the pointer, else the card's text. */
+function copyTextFor(target: EventTarget | null): string | null {
+	if (!(target instanceof HTMLElement)) return null;
+	const inline = target.closest('.fava-inline');
+	if (inline instanceof HTMLElement) return inline.textContent?.trim() || null;
+	const card = target.closest('.fava-card');
+	if (!(card instanceof HTMLElement)) return null;
+	const value = card.querySelector('.fava-card__value');
+	const text = (value?.textContent ?? card.textContent ?? '').replace(/\s+/g, ' ').trim();
+	return text || null;
 }
 
 function isInteractive(target: EventTarget | null): boolean {
