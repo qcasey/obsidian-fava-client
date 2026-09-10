@@ -23,14 +23,20 @@ export const addEntryCard: CardDef = {
 				'data-persist': `${ctx.keyPrefix}:add-amount`,
 			},
 		});
+		const cash = row.createEl('button', {
+			cls: 'fava-addentry__btn fava-addentry__cash',
+			attr: { type: 'button', 'aria-label': `Add cash entry (${ctx.cfg.quickCashAccount})` },
+		});
+		setIcon(cash, 'banknote');
 		const btn = row.createEl('button', { cls: 'mod-cta fava-addentry__btn', attr: { type: 'button', 'aria-label': 'Add entry' } });
 		setIcon(btn, 'plus');
-		const go = () => {
+		const go = (funding?: string) => {
 			const amount = input.value.replace(/[^0-9.]/g, '');
-			ctx.openQuickEntry(amount ? { amount } : undefined);
+			ctx.openQuickEntry({ amount: amount || undefined, funding });
 			input.value = '';
 		};
-		ctx.component.registerDomEvent(btn, 'click', go);
+		ctx.component.registerDomEvent(cash, 'click', () => go(ctx.cfg.quickCashAccount));
+		ctx.component.registerDomEvent(btn, 'click', () => go());
 		ctx.component.registerDomEvent(input, 'keydown', (e) => {
 			if (e.key === 'Enter') {
 				e.preventDefault();

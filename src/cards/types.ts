@@ -7,8 +7,21 @@ import type { FavaLinks } from '../lib/fava-links';
 import type { FavaSettings } from '../settings';
 import type { Snapshot } from '../types';
 
+/** Fields the add-entry form can open with already filled in. */
 export interface QuickEntryPrefill {
 	amount?: string;
+	payee?: string;
+	narration?: string;
+	/** YYYY-MM-DD */
+	date?: string;
+	/** Funding account (Paid with) */
+	funding?: string;
+	/** Expense / income account */
+	category?: string;
+	refund?: boolean;
+	uncertain?: boolean;
+	/** Raw text (email, receipt) to run through the interpreter first */
+	text?: string;
 }
 
 export type ParamValue = string | number | boolean;

@@ -66,6 +66,8 @@ export interface DomainConfig {
 	entryLineWidth: { personal: number; business: number };
 	/** Basename templates for the hand-maintained entry files; {year} is substituted */
 	entryFiles: { personal: string; business: string };
+	/** Funding account used by the add-transaction card's cash button */
+	quickCashAccount: string;
 }
 
 export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
@@ -191,6 +193,7 @@ export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
 	],
 	entryLineWidth: { personal: 76, business: 72 },
 	entryFiles: { personal: '{year}.beancount', business: '{year}-photopanda.beancount' },
+	quickCashAccount: 'Assets:Personal:Cash:Car',
 };
 
 // ── Override validation (hand-rolled; no schema library) ──
@@ -233,6 +236,7 @@ const SHAPE: Shape = {
 	nameFunding: [{ pattern: 'string', account: 'string' }],
 	entryLineWidth: { personal: 'number', business: 'number' },
 	entryFiles: { personal: 'string', business: 'string' },
+	quickCashAccount: 'string',
 };
 
 type Json = Record<string, unknown>;

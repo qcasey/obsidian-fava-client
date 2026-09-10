@@ -1,5 +1,6 @@
 import { Notice, PluginSettingTab, Setting, type App } from 'obsidian';
 import { DEFAULT_DOMAIN_CONFIG, parseDomainOverride } from '../lib/config';
+import { DEEPLINK_EXAMPLE, DEEPLINK_PARAMS } from '../lib/deeplink';
 import type FavaClientPlugin from '../main';
 import { MAX_HOURS, MIN_HOURS } from '../settings';
 
@@ -112,6 +113,19 @@ export class FavaSettingTab extends PluginSettingTab {
 				save();
 			}),
 		);
+
+		new Setting(containerEl).setName('Deep links').setHeading();
+		new Setting(containerEl)
+			.setName('Prefill the add-entry form from a URL')
+			.setDesc('Open obsidian://fava-entry with any of these query parameters (URL-encoded) to review and add an entry. Works from iOS Shortcuts.');
+		const dl = containerEl.createDiv({ cls: 'fava-settings__deeplink' });
+		const list = dl.createEl('ul');
+		for (const p of DEEPLINK_PARAMS) {
+			const li = list.createEl('li');
+			li.createEl('code', { text: p.name });
+			li.appendText(` — ${p.desc}`);
+		}
+		dl.createEl('pre', { text: DEEPLINK_EXAMPLE });
 
 		new Setting(containerEl).setName('Advanced config').setHeading();
 		const desc = new Setting(containerEl)

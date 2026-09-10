@@ -12,6 +12,8 @@ import {
 	type DupMatch,
 } from '../lib/entry-service';
 import { formatEntry } from '../lib/format-entry';
+import { interpretText } from '../lib/interpret';
+import { OllamaClient } from '../lib/ollama';
 import { todayISO } from '../lib/dates';
 import type { QuickEntryPrefill } from '../cards/types';
 import type FavaClientPlugin from '../main';
@@ -50,6 +52,7 @@ export class QuickEntryModal extends Modal {
 	private previewOpen = false;
 	private submitBtn!: HTMLButtonElement;
 	private refundToggle: ToggleComponent | null = null;
+	private uncertainToggle: ToggleComponent | null = null;
 
 	private readonly runDupCheck = debounce(() => void this.checkDuplicates(), 300, true);
 	/** Owns DOM listeners so they die with the modal (Modal itself isn't a Component). */
@@ -125,12 +128,13 @@ export class QuickEntryModal extends Modal {
 			});
 		new Setting(toggles)
 			.setName('Uncertain (!)')
-			.addToggle((t) =>
+			.addToggle((t) => {
+				this.uncertainToggle = t;
 				t.setValue(this.uncertain).onChange((v) => {
 					this.uncertain = v;
 					this.sync();
-				}),
-			);
+				});
+			});
 
 		this.dupBox = root.createDiv({ cls: 'fava-alert' });
 		this.dupBox.hidden = true;
@@ -161,13 +165,62 @@ export class QuickEntryModal extends Modal {
 		this.owner.registerDomEvent(this.splitFunding, 'input', () => this.sync());
 		this.owner.registerDomEvent(this.splitAmount, 'input', () => this.sync());
 
-		if (this.initial.amount) {
-			this.fields.amount.input.value = this.initial.amount;
-			// Amount is known: jump straight to who it was.
-			window.setTimeout(() => this.fields.payee.input.focus(), 0);
-		}
+		this.applyPrefill();
 		this.sync();
 		void this.loadAutocomplete();
+	}
+
+	/** Fill whatever a deep link or card handed us, then focus the first gap. */
+	private applyPrefill(): void {
+		const p = this.initial;
+		const f = this.fields;
+		if (p.amount) f.amount.input.value = p.amount;
+		if (p.payee) f.payee.input.value = p.payee;
+		if (p.narration) f.narration.input.value = p.narration;
+		if (p.date && /^\d{4}-\d{2}-\d{2}$/.test(p.date)) f.date.input.value = p.date;
+		if (p.funding) f.funding.input.value = p.funding;
+		if (p.category) f.category.input.value = p.category;
+		if (p.refund !== undefined) {
+			this.refund = p.refund;
+			this.refundToggle?.setValue(p.refund);
+		}
+		if (p.uncertain !== undefined) {
+			this.uncertain = p.uncertain;
+			this.uncertainToggle?.setValue(p.uncertain);
+		}
+		if (p.funding || p.amount) this.runDupCheck();
+		if (Object.keys(p).length > 0) this.focusFirstGap();
+	}
+
+	private focusFirstGap(): void {
+		const order: FieldName[] = ['payee', 'amount', 'funding', 'category'];
+		const target = order.find((n) => !this.fields[n].input.value.trim());
+		window.setTimeout(() => (target ? this.fields[target].input : this.submitBtn).focus(), 0);
+	}
+
+	/** Deep-link `text`: run the heuristic interpreter, but explicit fields win. */
+	private async applyPrefillText(payees: string[]): Promise<void> {
+		const text = this.initial.text?.trim();
+		if (!text) return;
+		try {
+			const draft = await interpretText(
+				text,
+				{ useAi: false, kind: this.kind },
+				{ client: this.plugin.client, ollama: new OllamaClient(() => this.plugin.settings), payees, cfg: this.plugin.domainConfig },
+			);
+			const explicit = this.initial;
+			if (explicit.payee) delete draft.payee;
+			if (explicit.amount) delete draft.amount;
+			if (explicit.date) delete draft.date;
+			if (explicit.narration) delete draft.narration;
+			if (explicit.funding) delete draft.fundingAccount;
+			if (explicit.category) delete draft.categoryAccount;
+			if (explicit.refund !== undefined) delete draft.refund;
+			this.applyParsed(draft);
+			this.focusFirstGap();
+		} catch {
+			/* best effort */
+		}
 	}
 
 	onClose(): void {
@@ -178,7 +231,9 @@ export class QuickEntryModal extends Modal {
 	// ── Layout pieces ──
 
 	private buildSplit(root: HTMLElement): void {
-		this.splitLink = root.createEl('button', {
+		// One centred row between "Paid with" and "Category": split link + swap.
+		const between = root.createDiv({ cls: 'fava-entry__between' });
+		this.splitLink = between.createEl('button', {
 			cls: 'fava-entry__split-link',
 			attr: { type: 'button' },
 		});
@@ -186,6 +241,21 @@ export class QuickEntryModal extends Modal {
 		setIcon(plus, 'plus');
 		this.splitLink.createSpan({ text: 'Split tender' });
 		this.owner.registerDomEvent(this.splitLink, 'click', () => this.setSplit(true));
+
+		const swap = between.createEl('button', {
+			cls: 'clickable-icon fava-entry__swap',
+			attr: { type: 'button', 'aria-label': 'Swap paid with and category' },
+		});
+		setIcon(swap, 'arrow-up-down');
+		this.owner.registerDomEvent(swap, 'click', () => {
+			const f = this.fields.funding.input;
+			const c = this.fields.category.input;
+			[f.value, c.value] = [c.value, f.value];
+			clearConfidence(this.fields.funding.wrapper);
+			clearConfidence(this.fields.category.wrapper);
+			this.runDupCheck();
+			this.sync();
+		});
 
 		this.splitRow = root.createDiv({ cls: 'fava-split-row' });
 		this.splitRow.hidden = true;
@@ -248,6 +318,8 @@ export class QuickEntryModal extends Modal {
 			this.ac = buildAutocomplete(meta, this.plugin.domainConfig);
 			this.accounts = meta.accounts;
 			this.sync();
+			await this.applyPrefillText(meta.payees);
+			if (this.initial.payee && !this.fields.category.input.value) void this.onPayeePicked(this.initial.payee);
 		} catch (e) {
 			new Notice(
 				`Could not load ledger accounts: ${e instanceof Error ? e.message : String(e)}`,

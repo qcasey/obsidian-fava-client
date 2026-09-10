@@ -63,6 +63,16 @@ The `Insert card` command pastes a block with the options commented.
 
 The `Insert or copy inline value` command lists them.
 
+## Deep links
+
+`obsidian://fava-entry?…` opens the add-entry form prefilled for review. Parameters (URL-encoded): `amount`, `payee`, `narration`, `date` (YYYY-MM-DD), `funding` (paid-with account), `category`, `refund=1`, `uncertain=1`, and `text` (raw email or receipt text run through the interpreter; explicit fields win). Example:
+
+```
+obsidian://fava-entry?amount=12.50&payee=Albertsons&narration=Strawberries%20and%20bread&funding=Liabilities:Personal:AmEx:Blue
+```
+
+From an iOS Shortcut: build the URL with "URL Encode" on each value, then "Open URLs".
+
 ## Development
 
 ```bash

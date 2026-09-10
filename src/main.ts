@@ -4,6 +4,7 @@ import { Plugin, type WorkspaceLeaf } from 'obsidian';
 import { registerCommands, registerRibbon } from './commands';
 import type { QuickEntryPrefill } from './cards/types';
 import { DataStore, type CachePersistence } from './data/store';
+import { DEEPLINK_ACTION, prefillFromParams } from './lib/deeplink';
 import { DEFAULT_DOMAIN_CONFIG, resolveDomainConfig, type DomainConfig } from './lib/config';
 import { FavaClient } from './lib/fava-client';
 import { makeFavaLinks, type FavaLinks } from './lib/fava-links';
@@ -44,6 +45,8 @@ export default class FavaClientPlugin extends Plugin {
 		registerFavaInline(this);
 		registerCommands(this);
 		registerRibbon(this);
+		// obsidian://fava-entry?amount=…&payee=… (see lib/deeplink.ts)
+		this.registerObsidianProtocolHandler(DEEPLINK_ACTION, (params) => this.openQuickEntry(prefillFromParams(params)));
 		this.addSettingTab(new FavaSettingTab(this.app, this));
 	}
 
