@@ -691,7 +691,7 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-preview-box__kind { margin-left: auto; margin-right: 8px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
 
 /* ── Entry form: split/swap row, cash button, deep-link docs ── */
-.fava-entry__between { display: flex; justify-content: center; align-items: center; gap: 20px; height: 20px; margin: -6px 0 -8px; }
+.fava-entry__between { display: flex; justify-content: center; align-items: center; gap: 20px; height: 20px; margin: 2px 0 -12px; }
 .fava-entry__between .fava-entry__split-link { margin: 0; align-self: center; color: var(--text-faint) !important; }
 .fava-entry__between .fava-entry__split-link:hover { color: var(--text-normal) !important; }
 .fava-entry__swap { padding: 0; }
