@@ -85,7 +85,7 @@ export class QuickEntryModal extends Modal {
 			cls: 'fava-field--amount',
 		});
 
-		const payee = textField(root, 'Payee', { placeholder: 'Who?' });
+		const payee = textField(root, 'Payee', { placeholder: 'Albertsons' });
 		new PayeeSuggest(
 			this.app,
 			payee.input,
@@ -93,9 +93,9 @@ export class QuickEntryModal extends Modal {
 			(v) => void this.onPayeePicked(v),
 		);
 
-		const narration = textField(root, 'Narration', { placeholder: 'What was it?' });
+		const narration = textField(root, 'Narration', { placeholder: 'Strawberries and bread' });
 
-		const funding = textField(root, 'Paid with', { placeholder: 'Funding account' });
+		const funding = textField(root, 'Paid with', { placeholder: 'Liabilities:Personal:AmEx:Blue' });
 		new AccountSuggest(
 			this.app,
 			funding.input,
