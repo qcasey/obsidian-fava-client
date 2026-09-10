@@ -43,7 +43,7 @@ export class QuickEntryModal extends Modal {
 	private splitFunding!: HTMLInputElement;
 	private splitAmount!: HTMLInputElement;
 	private splitLink!: HTMLButtonElement;
-	private segButtons: { side: Side; el: HTMLButtonElement }[] = [];
+	private kindNote!: HTMLElement;
 	private dupBox!: HTMLElement;
 	private previewBox!: HTMLElement;
 	private previewPre!: HTMLElement;
@@ -75,8 +75,6 @@ export class QuickEntryModal extends Modal {
 			onParsed: (d) => this.applyParsed(d),
 			component: this.owner,
 		});
-
-		this.buildSegmented(root);
 
 		const dateAmount = root.createDiv({ cls: 'fava-field-row' });
 		const date = textField(dateAmount, 'Date', { type: 'date' });
@@ -179,25 +177,6 @@ export class QuickEntryModal extends Modal {
 
 	// ── Layout pieces ──
 
-	private buildSegmented(root: HTMLElement): void {
-		const seg = root.createDiv({ cls: 'fava-seg', attr: { role: 'group' } });
-		for (const side of ['personal', 'business'] as Side[]) {
-			const el = seg.createEl('button', {
-				cls: 'fava-seg__btn',
-				text: side === 'personal' ? 'Personal' : 'Business',
-				attr: { type: 'button', 'aria-pressed': String(side === this.kind) },
-			});
-			this.owner.registerDomEvent(el, 'click', () => {
-				this.kind = side;
-				for (const b of this.segButtons) {
-					b.el.setAttribute('aria-pressed', String(b.side === this.kind));
-				}
-				this.sync();
-			});
-			this.segButtons.push({ side, el });
-		}
-	}
-
 	private buildSplit(root: HTMLElement): void {
 		this.splitLink = root.createEl('button', {
 			cls: 'fava-entry__split-link',
@@ -249,6 +228,7 @@ export class QuickEntryModal extends Modal {
 			attr: { type: 'button', 'aria-expanded': 'false' },
 		});
 		header.createSpan({ text: 'Entry preview' });
+		this.kindNote = header.createSpan({ cls: 'fava-preview-box__kind' });
 		const chev = header.createSpan({ cls: 'fava-preview-box__chevron' });
 		setIcon(chev, 'chevrons-up-down');
 		this.previewPre = this.previewBox.createEl('pre', { cls: 'fava-preview' });
@@ -390,7 +370,27 @@ export class QuickEntryModal extends Modal {
 		return d.fundings.length > 0 && !!d.payee.trim() && !!d.category.trim() && !!d.date;
 	}
 
+	/**
+	 * Personal vs business is decided by the account the money came from; a
+	 * business card means the business ledger. Falls back to the category.
+	 */
+	private inferKind(): Side {
+		const a = this.plugin.domainConfig.accounts;
+		const bizToken = `:${a.businessExpense.split(':')[1] ?? 'PhotoPanda'}:`;
+		const persToken = `:${a.personalExpense.split(':')[1] ?? 'Personal'}:`;
+		const sideOf = (acct: string): Side | null =>
+			acct.includes(bizToken) ? 'business' : acct.includes(persToken) ? 'personal' : null;
+		return (
+			sideOf(this.fields.funding.input.value) ??
+			sideOf(this.showSplit ? this.splitFunding.value : '') ??
+			sideOf(this.fields.category.input.value) ??
+			'personal'
+		);
+	}
+
 	private sync(): void {
+		this.kind = this.inferKind();
+		this.kindNote.setText(`${this.kind} ledger`);
 		const d = this.draft();
 		const complete = this.isComplete(d);
 		let preview = '';
