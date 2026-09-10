@@ -272,13 +272,13 @@
 .fava-verdict.is-red { border-color: rgba(var(--color-red-rgb), 0.5); }
 
 /* Hours to buy */
-.fava-hours { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 6px; }
+.fava-hours { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 10px; margin-top: 4px; }
 .fava-hours__input { position: relative; flex: 0 1 auto; min-width: 4em; max-width: 4.75em; }
 .fava-hours__prefix { position: absolute; left: 7px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 .fava-hours__input input { width: 100%; padding-left: 1.15em; padding-right: 0.4em; font-variant-numeric: tabular-nums; min-height: 36px; }
 /* Value and detail take their own row so nothing wraps character by character. */
 .fava-hours__out { order: 2; flex: 1 0 100%; min-width: 0; }
-.fava-hours__out .fava-card__value { line-height: 1.15; }
+.fava-hours__out .fava-card__value { margin-top: 0; line-height: 1.15; }
 .fava-slider input[type='range'] { width: 100%; }
 
 /* Segmented control */
