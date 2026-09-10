@@ -4,6 +4,7 @@ import { MarkdownRenderChild, type MarkdownPostProcessorContext } from 'obsidian
 import { CARDS, coerceParams, getCard, parseFavaBlock, renderCard } from '../cards/registry';
 import { SetCardUi, type CardContext, type CardDef, type Params } from '../cards/types';
 import type FavaClientPlugin from '../main';
+import { attachFavaMenu } from './context-menu';
 import { preserveInputs, skeletonCard } from './dom';
 
 export function registerFavaCodeBlock(plugin: FavaClientPlugin): void {
@@ -48,6 +49,7 @@ class FavaCardChild extends MarkdownRenderChild {
 
 	onload(): void {
 		this.registerEvent(this.plugin.store.onChange(() => this.render()));
+		attachFavaMenu(this.containerEl, this.plugin, this);
 		this.render();
 		void this.plugin.store.ensure().catch(() => undefined);
 	}

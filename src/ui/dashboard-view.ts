@@ -7,6 +7,7 @@ import { fmtAgo } from '../lib/dates';
 import { FavaError } from '../lib/fava-client';
 import type FavaClientPlugin from '../main';
 import type { Snapshot } from '../types';
+import { attachFavaMenu } from './context-menu';
 import { SECTIONS, type SectionDef } from './dashboard-sections';
 import { applyMasonry, iconButton, preserveInputs, skeletonCard } from './dom';
 
@@ -41,6 +42,7 @@ export class FavaDashboardView extends ItemView {
 		this.contentEl.addClass('fava-dashboard');
 		this.root = this.contentEl.createDiv({ cls: 'fava-root' });
 		this.registerEvent(this.plugin.store.onChange(() => this.render()));
+		attachFavaMenu(this.contentEl, this.plugin, this);
 		this.tick = this.registerInterval(window.setInterval(() => this.renderUpdated(), 30_000));
 		this.render();
 		void this.plugin.store.ensure().catch(() => undefined);
