@@ -272,11 +272,13 @@
 .fava-verdict.is-red { border-color: rgba(var(--color-red-rgb), 0.5); }
 
 /* Hours to buy */
-.fava-hours { display: flex; align-items: center; gap: var(--size-4-3); margin-top: 6px; }
-.fava-hours__input { position: relative; width: 8em; flex-shrink: 0; }
+.fava-hours { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin-top: 6px; }
+.fava-hours__input { position: relative; flex: 1 1 auto; min-width: 5.5em; max-width: 9em; }
 .fava-hours__prefix { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-muted); pointer-events: none; }
 .fava-hours__input input { width: 100%; padding-left: 1.6em; font-variant-numeric: tabular-nums; min-height: 36px; }
-.fava-hours__out { min-width: 0; }
+/* Value and detail take their own row so nothing wraps character by character. */
+.fava-hours__out { order: 2; flex: 1 0 100%; min-width: 0; }
+.fava-hours__out .fava-card__value { line-height: 1.15; }
 .fava-slider input[type='range'] { width: 100%; }
 
 /* Segmented control */
@@ -683,7 +685,7 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-card__updating svg { width: 14px; height: 14px; animation: fava-spin 1s linear infinite; }
 .fava-section--overview { margin-top: var(--size-4-2); }
 .fava-addentry { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
-.fava-addentry__input { flex: 1; width: auto; }
+.fava-addentry__input { flex: 1 1 auto; width: auto; max-width: none; }
 .fava-addentry__input input { font-size: 1.1em; }
 .fava-addentry__btn { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0; flex-shrink: 0; }
 .is-mobile .fava-addentry__btn { width: 44px; height: 44px; }
@@ -705,5 +707,5 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-hours__input:not(.is-time) .fava-hours__suffix { display: none; }
 .fava-hours__input.is-time .fava-hours__prefix { display: none; }
 .fava-hours__input.is-time input { padding-left: 0.6em; padding-right: 2.8em; }
-.fava-hours__swap { margin-left: auto; flex-shrink: 0; color: var(--text-faint); }
+.fava-hours__swap { order: 1; flex: 0 0 auto; margin-left: auto; color: var(--text-faint); }
 .fava-hours__swap:hover { color: var(--text-normal); }
