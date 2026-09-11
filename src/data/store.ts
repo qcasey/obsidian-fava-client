@@ -135,17 +135,24 @@ export class DataStore extends Events {
 		}
 	}
 
-	/** Pure recompute from cached rows only; throws on a cache miss. */
-	private computeFromCache(loadedAt: number): Promise<Snapshot> {
+	/**
+	 * Recompute from cached rows. Strict rejects on a miss; lenient substitutes
+	 * empty rows so cards can fill in one by one while a cold load runs.
+	 */
+	private computeFromCache(loadedAt: number, lenient = false): Promise<Snapshot> {
+		let missed = false;
 		const runner: QueryRunner = {
 			runQuery: (bql) => {
 				const rows = this.cache.getNear(keyParts(bql));
-				return rows ? Promise.resolve(rows) : Promise.reject(new Error('cache miss'));
+				if (rows) return Promise.resolve(rows);
+				if (!lenient) return Promise.reject(new Error('cache miss'));
+				missed = true;
+				return Promise.resolve([]);
 			},
 		};
 		const cfg = this.deps.cfg();
 		return Promise.all([computeMetrics(runner, cfg), computeRecurring(runner, cfg)]).then(
-			([metrics, recurring]) => ({ metrics, recurring, loadedAt }),
+			([metrics, recurring]) => ({ metrics, recurring, loadedAt, partial: missed }),
 		);
 	}
 
@@ -164,12 +171,12 @@ export class DataStore extends Events {
 		let recomputeChain: Promise<void> = Promise.resolve();
 
 		const scheduleRecompute = () => {
-			if (!this.snapshot) return; // first-ever load: nothing stale to improve on
 			if (recomputeTimer !== null) window.clearTimeout(recomputeTimer);
 			recomputeTimer = window.setTimeout(() => {
 				recomputeTimer = null;
 				recomputeChain = recomputeChain.then(async () => {
-					const snap = await this.computeFromCache(this.snapshot?.loadedAt ?? Date.now()).catch(() => null);
+					// A warm cache answers every query, so this stays non-partial.
+					const snap = await this.computeFromCache(this.snapshot?.loadedAt ?? Date.now(), true).catch(() => null);
 					if (snap && this.status === 'loading') {
 						this.snapshot = snap;
 						this.emit();
@@ -239,6 +246,8 @@ export class DataStore extends Events {
 		} catch (e) {
 			this.error = e instanceof Error ? e : new Error(String(e));
 			this.status = 'error';
+			// Half-filled numbers would be worse than the error card.
+			if (this.snapshot?.partial) this.snapshot = null;
 			throw this.error;
 		} finally {
 			this.emit();

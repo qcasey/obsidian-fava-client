@@ -69,6 +69,7 @@ class FavaCardChild extends MarkdownRenderChild {
 			}
 			return;
 		}
+		this.containerEl.toggleClass('fava-partial', store.snapshot.partial === true);
 		const ctx: CardContext = {
 			snapshot: store.snapshot,
 			cfg: this.plugin.domainConfig,

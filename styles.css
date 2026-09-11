@@ -403,11 +403,27 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-entry input[type='text'],
 .fava-entry input[type='date'] {
 	width: 100%;
-	/* Native date pickers carry an intrinsic width — let it shrink. */
 	min-width: 0;
 	max-width: 100%;
 	min-height: 40px;
 	box-sizing: border-box;
+}
+/*
+ * iOS sizes a date input to its formatted value and ignores min-width, so it
+ * overflows its grid track and collides with Amount. Dropping the native
+ * appearance lets it shrink; the field clips as a last resort.
+ */
+.fava-entry input[type='date'] {
+	appearance: none;
+	-webkit-appearance: none;
+}
+.is-mobile .fava-entry input[type='date'] {
+	font-size: var(--font-ui-smaller);
+	padding-left: var(--size-2-2);
+	padding-right: var(--size-2-2);
+}
+.fava-field {
+	overflow: hidden;
 }
 
 .fava-field--amount .fava-field__input {
@@ -713,3 +729,7 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-flows__controls .fava-seg button { font-size: var(--font-ui-smaller); min-height: 26px; padding: 2px 4px; white-space: nowrap; min-width: 0; }
 .is-mobile .fava-flows__controls .fava-seg button { min-height: 34px; }
 .fava-flows__chart { margin-top: 6px; }
+
+/* While a cold load fills in, values are still zero in places: a status dot
+   would be reporting on data that has not arrived. */
+.fava-partial .fava-dot { visibility: hidden; }

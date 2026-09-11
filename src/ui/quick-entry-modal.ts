@@ -127,7 +127,7 @@ export class QuickEntryModal extends Modal {
 				});
 			});
 		new Setting(toggles)
-			.setName('Uncertain (!)')
+			.setName('Uncertain')
 			.addToggle((t) => {
 				this.uncertainToggle = t;
 				t.setValue(this.uncertain).onChange((v) => {

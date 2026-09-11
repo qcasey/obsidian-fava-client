@@ -71,13 +71,20 @@ export class FavaDashboardView extends ItemView {
 		const store = this.plugin.store;
 		this.renderHeader(store.snapshot);
 
+		const loadingLine = () => {
+			const { done, total } = store.progress;
+			this.root.createDiv({
+				cls: 'fava-note fava-loading',
+				text:
+					done > 0
+						? `Loading… ${done} of ${total} queries (Fava answers them one at a time)`
+						: 'Loading…',
+			});
+		};
+
 		if (!store.snapshot) {
 			if (store.status === 'loading' || store.status === 'idle') {
-				const { done, total } = store.progress;
-				this.root.createDiv({
-					cls: 'fava-note fava-loading',
-					text: done > 0 ? `Loading… ${done} of ${total} queries (Fava answers them one at a time)` : 'Loading…',
-				});
+				loadingLine();
 				const grid = this.root.createDiv({ cls: 'fava-grid' });
 				for (let i = 0; i < 6; i++) skeletonCard(grid);
 			} else {
@@ -85,6 +92,10 @@ export class FavaDashboardView extends ItemView {
 			}
 			return;
 		}
+		// Figures still landing: say so, and hold back the dots and the verdict.
+		const partial = store.status === 'loading' && store.snapshot.partial === true;
+		this.root.toggleClass('fava-partial', partial);
+		if (partial) loadingLine();
 		if (store.error) {
 			const banner = this.root.createDiv({ cls: 'fava-banner is-red' });
 			banner.createSpan({ text: `Refresh failed: ${store.error.message}` });

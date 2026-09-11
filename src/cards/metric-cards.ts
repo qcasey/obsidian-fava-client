@@ -335,7 +335,7 @@ export const verdictCard: CardDef = {
 	render(el, ctx) {
 		const { verdict } = ctx.snapshot.metrics;
 		const issues = [...verdict.reds, ...verdict.warnings];
-		if (issues.length === 0 && ctx.inDashboard) {
+		if (ctx.snapshot.partial === true || (issues.length === 0 && ctx.inDashboard)) {
 			// Nothing to say: stay out of the way.
 			el.addClass('fava-card--hidden');
 			return;

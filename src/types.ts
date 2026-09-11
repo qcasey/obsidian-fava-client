@@ -250,6 +250,8 @@ export interface Snapshot {
 	metrics: Metrics;
 	recurring: RecurringSummary;
 	loadedAt: number;
+	/** Built while queries were still arriving: some figures read zero */
+	partial?: boolean;
 }
 
 // ── Quick entry ──
