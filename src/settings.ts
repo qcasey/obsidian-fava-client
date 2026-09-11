@@ -16,6 +16,8 @@ export interface FavaSettings {
 	/** JSON overriding any part of DEFAULT_DOMAIN_CONFIG; empty = defaults */
 	advancedConfigJson: string;
 	collapsedSections: Record<string, boolean>;
+	/** Remembered card switch positions, e.g. the 3/6/12 month window */
+	cardChoices: Record<string, string>;
 	quickEntryRibbon: boolean;
 }
 
@@ -29,6 +31,7 @@ export const DEFAULT_SETTINGS: FavaSettings = {
 	ollamaVisionModel: 'qwen3-vl',
 	advancedConfigJson: '',
 	collapsedSections: {},
+	cardChoices: {},
 	quickEntryRibbon: true,
 };
 

@@ -14,7 +14,7 @@ import { applyMasonry, iconButton, preserveInputs, skeletonCard } from './dom';
 export const VIEW_TYPE_FAVA_DASHBOARD = 'fava-dashboard';
 
 export class FavaDashboardView extends ItemView {
-	private readonly ui = new SetCardUi();
+	private readonly ui: SetCardUi;
 	private root!: HTMLElement;
 	private tick: number | null = null;
 
@@ -24,6 +24,13 @@ export class FavaDashboardView extends ItemView {
 	) {
 		super(leaf);
 		this.navigation = false;
+		this.ui = new SetCardUi({
+			get: (k) => this.plugin.settings.cardChoices[k],
+			set: (k, v) => {
+				this.plugin.settings.cardChoices[k] = v;
+				void this.plugin.saveData(this.plugin.settings);
+			},
+		});
 	}
 
 	getViewType(): string {
@@ -188,12 +195,13 @@ export class FavaDashboardView extends ItemView {
 	}
 
 	private renderSectionCards(section: SectionDef, grid: HTMLElement, ctx: CardContext): void {
-		section.cards.forEach((c, i) => {
+		section.cards.forEach((c) => {
 			const def = getCard(c.id);
 			if (!def) return;
 			const params = coerceParams(def, c.params ?? {});
 			if (!params.ok) return;
-			renderCard(grid, def, { ...ctx, keyPrefix: `dash:${section.id}:${i}` }, params.params);
+			// Keyed by card id, not position, so reordering a section keeps state.
+			renderCard(grid, def, { ...ctx, keyPrefix: `dash:${section.id}:${c.id}` }, params.params);
 		});
 		applyMasonry(grid, this);
 	}

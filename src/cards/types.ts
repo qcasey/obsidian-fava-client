@@ -73,22 +73,31 @@ export interface CardDef {
 	render(el: HTMLElement, ctx: CardContext, p: Params): void;
 }
 
+/** Somewhere to keep switch positions between sessions. */
+export interface ChoiceStore {
+	get(key: string): string | undefined;
+	set(key: string, value: string): void;
+}
+
 export class SetCardUi implements CardUi {
 	private readonly expanded = new Set<string>();
 	private readonly choices = new Map<string, string>();
-	constructor(private readonly onChange?: () => void) {}
+
+	/** Without a store, choices last only as long as this view. */
+	constructor(private readonly store?: ChoiceStore) {}
+
 	isExpanded(key: string): boolean {
 		return this.expanded.has(key);
 	}
 	toggle(key: string): void {
 		if (this.expanded.has(key)) this.expanded.delete(key);
 		else this.expanded.add(key);
-		this.onChange?.();
 	}
 	getChoice(key: string): string | undefined {
-		return this.choices.get(key);
+		return this.store ? this.store.get(key) : this.choices.get(key);
 	}
 	setChoice(key: string, value: string): void {
-		this.choices.set(key, value);
+		if (this.store) this.store.set(key, value);
+		else this.choices.set(key, value);
 	}
 }

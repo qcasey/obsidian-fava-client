@@ -1,5 +1,6 @@
 // Deep links into fava (browser-facing) — port of healthcheck.py's FAVA_URLS.
 
+import type { FlowScope } from '../types';
 import type { DomainConfig } from './config';
 
 export interface FavaLinks {
@@ -15,6 +16,8 @@ export interface FavaLinks {
 	hardLiab: () => string;
 	netWorth: () => string;
 	account: (name: string) => string;
+	/** Income statement over the last N months, optionally one side only */
+	incomeStatement: (months: number, scope: FlowScope) => string;
 }
 
 const F_PERSONAL = `any(account:"(Income|Expenses):Personal.*")`;
@@ -53,5 +56,14 @@ export function makeFavaLinks(publicUrl: string, cfg: DomainConfig): FavaLinks {
 			url(`account/${a.businessLiability.replace(/:$/, '')}`, { time: 'month-3 - month' }),
 		netWorth: () => url('balance_sheet/'),
 		account: (name: string) => url(`account/${name}/`),
+		incomeStatement: (months: number, scope: FlowScope) => {
+			const params: Record<string, string> = {
+				time: `month-${Math.max(0, months - 1)} - month`,
+				conversion: 'USD',
+			};
+			if (scope === 'personal') params.filter = `${F_PERSONAL} ${F_NOT_BIZ}`;
+			if (scope === 'business') params.filter = `${F_BUSINESS} ${F_NOT_PERS}`;
+			return url('income_statement/', params);
+		},
 	};
 }

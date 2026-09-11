@@ -223,6 +223,7 @@ export const incomeExpensesCard: CardDef = {
 			value: `${fmtSigned(first.net)}/mo`,
 			detail: detailFor(first),
 			status: first.status,
+			href: ctx.links.enabled ? ctx.links.incomeStatement(months, scope) : undefined,
 			toggle: { key: key(ctx, `flows-detail-${scope}`), ui: ctx.ui },
 		});
 		const main = shell.header.querySelector<HTMLElement>('.fava-card__main');
@@ -230,10 +231,9 @@ export const incomeExpensesCard: CardDef = {
 		const detailEl = main?.querySelector<HTMLElement>('.fava-card__detail');
 		const dotEl = main?.querySelector<HTMLElement>('.fava-dot');
 
-		// The switch and chart stay visible; the comparison lives in the body.
+		// The switch stays visible; the chart and comparison live in the body.
 		const controls = (main ?? shell.card).createDiv({ cls: 'fava-flows__controls' });
-		const chartHost = (main ?? shell.card).createDiv({ cls: 'fava-flows__chart' });
-		ctx.component.registerDomEvent(chartHost, 'click', (e) => e.stopPropagation());
+		const linkEl = shell.header.querySelector<HTMLAnchorElement>('.fava-card__link');
 
 		const redraw = () => {
 			const w = pick(months);
@@ -241,8 +241,10 @@ export const incomeExpensesCard: CardDef = {
 			valueEl?.toggleClass('is-red', w.net < 0);
 			detailEl?.setText(detailFor(w));
 			if (dotEl) dotEl.className = `fava-dot is-${w.status}`;
+			if (linkEl) linkEl.href = ctx.links.incomeStatement(months, scope);
 
-			chartHost.empty();
+			shell.body.empty();
+			const chartHost = shell.body.createDiv({ cls: 'fava-flows__chart' });
 			const recent = data.series.filter((m) => !m.partial).slice(-months);
 			const partial = data.series.find((m) => m.partial);
 			const shown = partial ? [...recent, partial] : recent;
@@ -258,7 +260,6 @@ export const incomeExpensesCard: CardDef = {
 				},
 			);
 
-			shell.body.empty();
 			const pct = w.changePct === null ? '' : ` (${fmtSignedPct(w.changePct)})`;
 			kv(shell.body, `Net vs previous ${w.months} months`, `${fmtSigned(w.changeAbs)}/mo${pct}`, {
 				strong: true,

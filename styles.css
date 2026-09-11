@@ -452,30 +452,6 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 }
 
 /* Personal / business segmented control */
-.fava-seg {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 2px;
-	padding: 2px;
-	background: var(--background-secondary);
-	border-radius: var(--radius-m);
-}
-
-.fava-seg__btn {
-	min-height: 36px;
-	box-shadow: none;
-	background: transparent;
-	color: var(--text-muted);
-	border-radius: var(--radius-s);
-}
-
-.fava-seg__btn[aria-pressed='true'] {
-	background: var(--background-primary);
-	color: var(--text-normal);
-	font-weight: var(--font-medium);
-	box-shadow: var(--shadow-s);
-}
-
 .fava-entry__toggles {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -660,7 +636,6 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 
 .is-mobile .fava-entry button,
 .is-mobile .fava-interp__btn,
-.is-mobile .fava-seg__btn,
 .is-mobile .fava-field__input {
 	min-height: 44px;
 }
@@ -717,6 +692,7 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-chart__bar.is-partial { opacity: 0.4; }
 .fava-chart__grid.is-zero { stroke: var(--text-faint); }
 .fava-flows__controls { margin-top: var(--size-4-2); }
-.fava-flows__controls .fava-seg button { font-size: var(--font-ui-smaller); min-height: 26px; }
+/* Three options have to share one line even in a narrow column. */
+.fava-flows__controls .fava-seg button { font-size: var(--font-ui-smaller); min-height: 26px; padding: 2px 4px; white-space: nowrap; min-width: 0; }
 .is-mobile .fava-flows__controls .fava-seg button { min-height: 34px; }
 .fava-flows__chart { margin-top: 6px; }
