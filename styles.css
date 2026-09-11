@@ -371,14 +371,19 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 	display: grid;
 	gap: var(--size-4-2);
 	align-content: start;
-	min-height: 0;
-	max-height: 100%;
-	overflow-y: auto;
-	overscroll-behavior: contain;
+}
+
+/*
+ * Obsidian shrinks .app-container by --keyboard-height when the mobile
+ * keyboard opens, but a modal stays capped at the full viewport height, so its
+ * lower half ends up behind the keyboard with nothing to scroll. Cap it here
+ * instead and let .modal's own overflow do the work.
+ */
+.is-mobile .fava-entry-modal {
+	max-height: calc(100vh - var(--safe-area-inset-top, 0px) - var(--keyboard-height, 0px));
 }
 .is-mobile .fava-entry-modal .modal-content {
-	/* Room to scroll the last fields clear of the keyboard. */
-	padding-bottom: var(--size-4-12);
+	padding-bottom: var(--size-4-4);
 }
 
 .fava-field {
