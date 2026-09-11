@@ -370,6 +370,15 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-entry {
 	display: grid;
 	gap: var(--size-4-2);
+	align-content: start;
+	min-height: 0;
+	max-height: 100%;
+	overflow-y: auto;
+	overscroll-behavior: contain;
+}
+.is-mobile .fava-entry-modal .modal-content {
+	/* Room to scroll the last fields clear of the keyboard. */
+	padding-bottom: var(--size-4-12);
 }
 
 .fava-field {
@@ -389,6 +398,9 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-entry input[type='text'],
 .fava-entry input[type='date'] {
 	width: 100%;
+	/* Native date pickers carry an intrinsic width — let it shrink. */
+	min-width: 0;
+	max-width: 100%;
 	min-height: 40px;
 	box-sizing: border-box;
 }
@@ -400,7 +412,7 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 
 .fava-field-row {
 	display: grid;
-	grid-template-columns: 1fr 1fr;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 	gap: var(--size-4-2);
 }
 

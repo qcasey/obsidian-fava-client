@@ -1,7 +1,7 @@
 // Quick entry: add a transaction to the ledger through fava's source API.
 // Full-screen on mobile automatically (Obsidian modals).
 
-import { Component, Modal, Notice, Setting, debounce, setIcon, type ToggleComponent } from 'obsidian';
+import { Component, Modal, Notice, Platform, Setting, debounce, setIcon, type ToggleComponent } from 'obsidian';
 import {
 	buildAutocomplete,
 	duplicateCheck,
@@ -164,6 +164,15 @@ export class QuickEntryModal extends Modal {
 		});
 		this.owner.registerDomEvent(this.splitFunding, 'input', () => this.sync());
 		this.owner.registerDomEvent(this.splitAmount, 'input', () => this.sync());
+
+		if (Platform.isMobile) {
+			this.owner.registerDomEvent(root, 'focusin', (evt) => {
+				const target = evt.target;
+				if (!(target instanceof HTMLElement)) return;
+				// Wait for the keyboard animation, then bring the field into view.
+				window.setTimeout(() => target.scrollIntoView({ block: 'center' }), 300);
+			});
+		}
 
 		this.applyPrefill();
 		this.sync();
