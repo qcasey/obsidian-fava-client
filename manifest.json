@@ -1,10 +1,1 @@
-{
-	"id": "fava-client",
-	"name": "Fava client",
-	"version": "0.2.0",
-	"minAppVersion": "1.7.2",
-	"description": "Dashboard, embeddable cards and quick entry for a Fava (Beancount) ledger server.",
-	"author": "Quinn Casey",
-	"authorUrl": "https://github.com/qcasey",
-	"isDesktopOnly": false
-}
+{"id":"fava-client","name":"Fava client","version":"0.2.0","minAppVersion":"1.7.2","description":"Dashboard, embeddable cards and quick entry for a Fava (Beancount) ledger server.","author":"Quinn Casey","authorUrl":"https://github.com/qcasey","isDesktopOnly":false}
