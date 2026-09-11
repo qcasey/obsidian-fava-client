@@ -5,6 +5,8 @@ import { CHART_H, CHART_W, PAD, labelIndexes, linear, niceTicks, svgRoot, text, 
 export interface BarGroup {
 	label: string;
 	values: number[];
+	/** Incomplete period: drawn faded */
+	partial?: boolean;
 }
 
 export interface BarSeries {
@@ -17,7 +19,13 @@ export function drawGroupedBars(
 	parent: HTMLElement,
 	groups: BarGroup[],
 	series: BarSeries[],
-	opts: { formatY: (v: number) => string; formatX: (label: string) => string; formatTip: (v: number) => string },
+	opts: {
+		formatY: (v: number) => string;
+		formatX: (label: string) => string;
+		formatTip: (v: number) => string;
+		/** Colour by sign instead of by series, and drop the legend */
+		colorBySign?: boolean;
+	},
 ): void {
 	if (groups.length === 0) {
 		parent.createDiv({ cls: 'fava-note', text: 'No data yet.' });
@@ -36,7 +44,7 @@ export function drawGroupedBars(
 
 	for (const t of ticks) {
 		svg.createSvg('line', {
-			cls: 'fava-chart__grid',
+			cls: t === 0 ? ['fava-chart__grid', 'is-zero'] : 'fava-chart__grid',
 			attr: { x1: String(PAD.left), x2: String(w - PAD.right), y1: String(y(t)), y2: String(y(t)) },
 		});
 		text(svg, PAD.left - 4, y(t) + 3, opts.formatY(t), { anchor: 'end' });
@@ -49,8 +57,10 @@ export function drawGroupedBars(
 			const v = g.values[si] ?? 0;
 			const top = Math.min(y(v), y(0));
 			const height = Math.max(0.5, Math.abs(y(v) - y(0)));
+			const cls = ['fava-chart__bar', opts.colorBySign ? (v < 0 ? 'is-neg' : 'is-pos') : `is-slot-${s.slot}`];
+			if (g.partial) cls.push('is-partial');
 			const rect = svg.createSvg('rect', {
-				cls: ['fava-chart__bar', `is-slot-${s.slot}`],
+				cls,
 				attr: {
 					x: (x0 + si * barW).toFixed(1),
 					y: top.toFixed(1),
@@ -63,6 +73,7 @@ export function drawGroupedBars(
 		});
 	});
 
+	if (opts.colorBySign) return;
 	const legend = parent.createDiv({ cls: 'fava-legend' });
 	for (const s of series) {
 		const item = legend.createSpan({ cls: 'fava-legend__item' });

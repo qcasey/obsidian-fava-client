@@ -710,3 +710,13 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 .fava-hours__input.is-time input { padding-left: 0.5em; padding-right: 2.2em; }
 .fava-hours__swap { order: 1; flex: 0 0 auto; margin-left: auto; color: var(--text-faint); }
 .fava-hours__swap:hover { color: var(--text-normal); }
+
+/* Income vs expenses */
+.fava-chart__bar.is-pos { fill: var(--color-green); }
+.fava-chart__bar.is-neg { fill: var(--color-red); }
+.fava-chart__bar.is-partial { opacity: 0.4; }
+.fava-chart__grid.is-zero { stroke: var(--text-faint); }
+.fava-flows__controls { margin-top: var(--size-4-2); }
+.fava-flows__controls .fava-seg button { font-size: var(--font-ui-smaller); min-height: 26px; }
+.is-mobile .fava-flows__controls .fava-seg button { min-height: 34px; }
+.fava-flows__chart { margin-top: 6px; }

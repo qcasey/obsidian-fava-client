@@ -24,6 +24,7 @@ export const SECTIONS: SectionDef[] = [
 			{ id: 'add-entry' },
 			{ id: 'verdict' },
 			{ id: 'net-worth' },
+			{ id: 'income-expenses' },
 			{ id: 'runway' },
 			{ id: 'burn', params: { mode: 'both' } },
 			{ id: 'business-cash' },

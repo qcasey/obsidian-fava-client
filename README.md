@@ -52,6 +52,7 @@ label: Home Downpayment
 | `category-bars` | `lifestyle`, `perDay` (true), `limit` |
 | `category-pace` | `limit` (8) |
 | `monthly-bars` | `side`, `months` (12) |
+| `income-expenses` | `scope` all \| personal \| business, `window` 3 \| 6 \| 12, `selector` |
 | `qtd` | `side` personal \| business \| both |
 | `hours-to-buy` | `price`, `mode` money \| time |
 

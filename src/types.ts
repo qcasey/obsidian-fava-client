@@ -175,6 +175,45 @@ export interface QtdMetrics {
 	bProjectedNet: number;
 }
 
+export type FlowScope = 'all' | 'personal' | 'business';
+
+export interface MonthlyFlow {
+	month: string;
+	income: number;
+	expenses: number;
+	net: number;
+	/** The current calendar month, still filling up */
+	partial: boolean;
+}
+
+export interface FlowWindow {
+	/** Months requested */
+	months: number;
+	/** Complete months actually available */
+	counted: number;
+	income: number;
+	expenses: number;
+	net: number;
+	prevIncome: number;
+	prevExpenses: number;
+	prevNet: number;
+	/** Net change vs the preceding window, dollars per month */
+	changeAbs: number;
+	/** Change as % of the previous net; null when that base is too small to mean anything */
+	changePct: number | null;
+	/** Change as a share of income — the scale-free signal behind the status dot */
+	marginPts: number;
+	status: Status;
+}
+
+export interface FlowScopeData {
+	series: MonthlyFlow[];
+	/** Trailing summaries, shortest first */
+	windows: FlowWindow[];
+}
+
+export type IncomeExpense = Record<FlowScope, FlowScopeData>;
+
 export interface Metrics {
 	generatedAt: string;
 	trailing: number;
@@ -200,6 +239,8 @@ export interface Metrics {
 	};
 	forecast: { combinedNow: number; combined30d: number; delta: number };
 	envelopes: Envelope[];
+	/** Income vs expenses by month, whole ledger and per side */
+	flows: IncomeExpense;
 	statuses: Record<string, Status>;
 	verdict: { reds: string[]; warnings: string[] };
 }

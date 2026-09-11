@@ -1,9 +1,10 @@
 // Chart-bearing cards: where income goes, monthly bars, burn.
 
-import { fmtCompact, fmtMoney, fmtMonth } from '../lib/fmt';
+import { fmtCompact, fmtMoney, fmtMonth, fmtSigned, fmtSignedPct } from '../lib/fmt';
+import type { FlowScope, FlowWindow } from '../types';
 import { drawGroupedBars } from '../ui/charts/bars';
 import { drawDonut, type DonutSlice } from '../ui/charts/donut';
-import { cardShell, kv, segmented } from '../ui/dom';
+import { cardShell, kv, note, segmented } from '../ui/dom';
 import { categoryBarsInto } from './list-cards';
 import type { CardContext, CardDef, Params } from './types';
 
@@ -190,4 +191,112 @@ export const burnCard: CardDef = {
 	},
 };
 
-export const CHART_CARDS: CardDef[] = [spendRingCard, monthlyBarsCard, burnCard];
+const WINDOW_OPTIONS = [
+	{ value: '3', label: '3 mo' },
+	{ value: '6', label: '6 mo' },
+	{ value: '12', label: '12 mo' },
+];
+
+export const incomeExpensesCard: CardDef = {
+	id: 'income-expenses',
+	title: 'Income vs expenses',
+	desc: 'Net per month over a trailing window, with a bar for each month.',
+	wide: true,
+	params: [
+		{ name: 'scope', kind: { enum: ['all', 'personal', 'business'] }, default: 'all', desc: 'Whole ledger, personal only, or business only' },
+		{ name: 'window', kind: { enum: ['3', '6', '12'] }, default: '6', desc: 'Trailing months' },
+		{ name: 'selector', kind: 'boolean', default: true, desc: 'Show the 3 / 6 / 12 month switch' },
+	],
+	render(el, ctx, p) {
+		const scope = (str(p, 'scope') ?? 'all') as FlowScope;
+		const data = ctx.snapshot.metrics.flows[scope];
+		const choiceKey = key(ctx, `flows-${scope}`);
+		const pick = (months: number): FlowWindow =>
+			data.windows.find((w) => w.months === months) ?? data.windows[0] ?? EMPTY_WINDOW;
+		let months = Number(ctx.ui.getChoice(choiceKey) ?? str(p, 'window') ?? '6');
+
+		const label = scope === 'all' ? 'Income vs expenses' : `${scope === 'business' ? 'Business' : 'Personal'} income vs expenses`;
+		const first = pick(months);
+		const detailFor = (w: FlowWindow) => `${fmtMoney(w.income)} in · ${fmtMoney(w.expenses)} out, monthly average`;
+		const shell = cardShell(el, {
+			label,
+			value: `${fmtSigned(first.net)}/mo`,
+			detail: detailFor(first),
+			status: first.status,
+			toggle: { key: key(ctx, `flows-detail-${scope}`), ui: ctx.ui },
+		});
+		const main = shell.header.querySelector<HTMLElement>('.fava-card__main');
+		const valueEl = main?.querySelector<HTMLElement>('.fava-card__value');
+		const detailEl = main?.querySelector<HTMLElement>('.fava-card__detail');
+		const dotEl = main?.querySelector<HTMLElement>('.fava-dot');
+
+		// The switch and chart stay visible; the comparison lives in the body.
+		const controls = (main ?? shell.card).createDiv({ cls: 'fava-flows__controls' });
+		const chartHost = (main ?? shell.card).createDiv({ cls: 'fava-flows__chart' });
+		ctx.component.registerDomEvent(chartHost, 'click', (e) => e.stopPropagation());
+
+		const redraw = () => {
+			const w = pick(months);
+			valueEl?.setText(`${fmtSigned(w.net)}/mo`);
+			valueEl?.toggleClass('is-red', w.net < 0);
+			detailEl?.setText(detailFor(w));
+			if (dotEl) dotEl.className = `fava-dot is-${w.status}`;
+
+			chartHost.empty();
+			const recent = data.series.filter((m) => !m.partial).slice(-months);
+			const partial = data.series.find((m) => m.partial);
+			const shown = partial ? [...recent, partial] : recent;
+			drawGroupedBars(
+				chartHost,
+				shown.map((m) => ({ label: m.month, values: [m.net], partial: m.partial })),
+				[{ name: 'Net', slot: 1 }],
+				{
+					formatY: (v) => fmtCompact(v),
+					formatX: (l) => fmtMonth(l),
+					formatTip: (v) => fmtMoney(v),
+					colorBySign: true,
+				},
+			);
+
+			shell.body.empty();
+			const pct = w.changePct === null ? '' : ` (${fmtSignedPct(w.changePct)})`;
+			kv(shell.body, `Net vs previous ${w.months} months`, `${fmtSigned(w.changeAbs)}/mo${pct}`, {
+				strong: true,
+				valueClass: w.status === 'none' ? '' : `is-${w.status}`,
+			});
+			kv(shell.body, 'Income', `${fmtMoney(w.income)}/mo, was ${fmtMoney(w.prevIncome)}`, { muted: true });
+			kv(shell.body, 'Expenses', `${fmtMoney(w.expenses)}/mo, was ${fmtMoney(w.prevExpenses)}`, { muted: true });
+			kv(shell.body, 'Net', `${fmtSigned(w.net)}/mo, was ${fmtSigned(w.prevNet)}`, { muted: true });
+			note(
+				shell.body,
+				`Averages over ${w.counted} complete month${w.counted === 1 ? '' : 's'}; the current month is shown on the chart but left out of the averages.`,
+			);
+		};
+
+		if (bool(p, 'selector', true)) {
+			segmented(controls, WINDOW_OPTIONS, String(months), (v) => {
+				months = Number(v);
+				ctx.ui.setChoice(choiceKey, v);
+				redraw();
+			});
+		}
+		redraw();
+	},
+};
+
+const EMPTY_WINDOW: FlowWindow = {
+	months: 0,
+	counted: 0,
+	income: 0,
+	expenses: 0,
+	net: 0,
+	prevIncome: 0,
+	prevExpenses: 0,
+	prevNet: 0,
+	changeAbs: 0,
+	changePct: null,
+	marginPts: 0,
+	status: 'none',
+};
+
+export const CHART_CARDS: CardDef[] = [spendRingCard, monthlyBarsCard, burnCard, incomeExpensesCard];

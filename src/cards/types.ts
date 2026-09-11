@@ -36,10 +36,13 @@ export interface ParamSpec {
 	desc: string;
 }
 
-/** Expand/collapse state that survives re-renders. */
+/** Expand/collapse and selection state that survives re-renders. */
 export interface CardUi {
 	isExpanded(key: string): boolean;
 	toggle(key: string): void;
+	/** Remembered value of a multi-option switch */
+	getChoice(key: string): string | undefined;
+	setChoice(key: string, value: string): void;
 }
 
 export interface CardContext {
@@ -72,6 +75,7 @@ export interface CardDef {
 
 export class SetCardUi implements CardUi {
 	private readonly expanded = new Set<string>();
+	private readonly choices = new Map<string, string>();
 	constructor(private readonly onChange?: () => void) {}
 	isExpanded(key: string): boolean {
 		return this.expanded.has(key);
@@ -80,5 +84,11 @@ export class SetCardUi implements CardUi {
 		if (this.expanded.has(key)) this.expanded.delete(key);
 		else this.expanded.add(key);
 		this.onChange?.();
+	}
+	getChoice(key: string): string | undefined {
+		return this.choices.get(key);
+	}
+	setChoice(key: string, value: string): void {
+		this.choices.set(key, value);
 	}
 }

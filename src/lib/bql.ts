@@ -69,6 +69,10 @@ export const BQL = {
 	contribByAcct: (prefixes: string[], since: string) =>
 		`SELECT account, sum(cost(position)) WHERE account ~ "^(${prefixes.join('|')})" AND date >= ${since} AND date <= ${todayISO()} GROUP BY account`,
 
+	/** Income and expense totals per month and account, for the flows card. */
+	flowsByMonth: (incomeRoot: string, expenseRoot: string, since: string) =>
+		`SELECT year, month, account, sum(position) WHERE account ~ "^(${incomeRoot}|${expenseRoot}):" AND date >= ${since} AND date <= ${todayISO()} GROUP BY year, month, account ORDER BY year, month`,
+
 	/** Posting-level feed for recurring detection. USD-only keeps the math clean. */
 	postings: (since: string) =>
 		`SELECT date, payee, account, number WHERE account ~ "^(Expenses|Income):(Personal|PhotoPanda):" AND payee != "" AND currency = "USD" AND date >= ${since} AND date <= ${todayISO()} ORDER BY date`,

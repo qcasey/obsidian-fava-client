@@ -7,6 +7,7 @@ import { cell } from './csv';
 import { daysBetween, monthInfo, monthsAgo, monthsElapsed, quarterInfo, todayISO } from './dates';
 import type { QueryRunner } from './fava-client';
 import { computeBusiness, computeComposition } from './metrics-business';
+import { FLOW_MONTHS, computeFlows, rootOf } from './metrics-flows';
 import { computeEnvelopes, computePersonal } from './metrics-personal';
 import {
 	firstNum,
@@ -78,6 +79,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 		contribRaw,
 		adsRevenueRaw,
 		lastEntryRaw,
+		flowsRaw,
 	] = await Promise.all([
 		run(BQL.balances()),
 		run(BQL.accountSums(a.personalExpense, threeMo)),
@@ -119,6 +121,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 			: Promise.resolve([] as string[][]),
 		run(BQL.adsRevenueByDate(a.businessIncome, a.businessExpense, twelveMo)),
 		run(BQL.lastEntry()),
+		run(BQL.flowsByMonth(rootOf(a.personalIncome), rootOf(a.personalExpense), monthsAgo(FLOW_MONTHS))),
 	]);
 
 	const balances = toAcctRows(balancesRaw);
@@ -304,6 +307,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 			delta: p.monthlySurplus + b.monthlyRevenue - b.monthlyTotalExp,
 		},
 		envelopes,
+		flows: computeFlows(flowsRaw, cfg, today),
 		statuses,
 		verdict: { reds, warnings },
 	};

@@ -37,6 +37,9 @@ export interface DomainConfig {
 		hardCovYellow: number;
 		combinedRunwayGreen: number;
 		combinedRunwayYellow: number;
+		/** Net change vs the previous equal window, as a % of income — green above, then yellow above */
+		flowTrendGreen: number;
+		flowTrendYellow: number;
 	};
 	/** Fixed rent credit posting that offsets HomeOffice */
 	rent: {
@@ -105,6 +108,8 @@ export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
 		hardCovYellow: 1.5,
 		combinedRunwayGreen: 12,
 		combinedRunwayYellow: 6,
+		flowTrendGreen: -2,
+		flowTrendYellow: -8,
 	},
 	rent: {
 		payee: 'Kailey',
