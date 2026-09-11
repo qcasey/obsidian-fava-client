@@ -152,13 +152,53 @@ export function computePersonal(i: PersonalInputs): PersonalMetrics {
 	};
 }
 
+/** An envelope before its balance is attached: where it came from, and its order. */
+interface EnvelopeDef {
+	account: string;
+	label: string;
+	target: number;
+	/** `envelope_sort` metadata; undefined sorts after every numbered envelope. */
+	sort: number | undefined;
+}
+
+/**
+ * Envelope definitions from `open`-directive metadata, in `envelope_sort` order.
+ * Unnumbered envelopes trail the numbered ones, largest target first.
+ */
+function ledgerEnvelopeDefs(envelopeDefsRaw: string[][]): EnvelopeDef[] {
+	// Column 4 is the balance the GROUP BY needs an aggregate for; balances come
+	// from the ledger-wide query instead, so both sources are read the same way.
+	const defs = envelopeDefsRaw.map((r) => ({
+		account: cell(r, 0),
+		label: cell(r, 1),
+		target: parseNum(cell(r, 2)),
+		sort: cell(r, 3) ? parseNum(cell(r, 3)) : undefined,
+	}));
+	return defs.sort(
+		(a, b) =>
+			(a.sort ?? Infinity) - (b.sort ?? Infinity) ||
+			b.target - a.target ||
+			a.label.localeCompare(b.label),
+	);
+}
+
+/**
+ * Savings envelopes, preferring the ledger: any account whose `open` directive
+ * carries `envelope` metadata wins outright, and `savingsEnvelopes` is the
+ * fallback for ledgers that are not annotated yet.
+ */
 export function computeEnvelopes(
 	cfg: DomainConfig,
 	balances: AcctRows,
+	envelopeDefsRaw: string[][],
 	envelopes3Raw: string[][],
 ): Envelope[] {
 	const envelopes3 = toAcctRows(envelopes3Raw);
-	return cfg.savingsEnvelopes.map(({ account, label, target }) => {
+	const fromLedger = ledgerEnvelopeDefs(envelopeDefsRaw);
+	const defs: EnvelopeDef[] = fromLedger.length
+		? fromLedger
+		: cfg.savingsEnvelopes.map((e) => ({ ...e, sort: undefined }));
+	return defs.map(({ account, label, target }) => {
 		const balance = balances.find(([x]) => x === account)?.[1] ?? 0;
 		const hist = envelopes3.find(([x]) => x === account)?.[1] ?? 0;
 		return {

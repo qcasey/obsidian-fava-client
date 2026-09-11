@@ -28,6 +28,28 @@ It is a port of a personal Next.js dashboard: the same metrics (net worth, survi
 | Ollama URL / models | Optional; enables AI parse and screenshot import |
 | Domain config override | JSON overriding account names, thresholds, envelopes, survival-mode rules and interpreter mappings. Objects merge, arrays replace. Use the reset button to see the full default shape. |
 
+## Savings envelopes
+
+Declare envelopes in the ledger, as metadata on the account's `open` directive:
+
+```beancount
+2020-01-01 open Assets:Personal:Banks:CFG:EmergencyFund
+  envelope: "Emergency Fund"
+  envelope_target: 15000.00
+  envelope_sort: 1
+```
+
+| Key | Meaning |
+|---|---|
+| `envelope` | Display label. Its presence is what makes the account an envelope. |
+| `envelope_target` | Goal amount; drives the progress percentage. Missing or zero shows no bar. |
+| `envelope_sort` | Display order, ascending. Unnumbered envelopes trail the numbered ones, largest target first. |
+
+Any account carrying `envelope` metadata takes over completely — the
+`savingsEnvelopes` array in the domain config is only the fallback for ledgers
+that are not annotated yet. Only accounts with postings are picked up, so an
+envelope that has never been funded will not appear.
+
 ## Cards
 
 ````markdown

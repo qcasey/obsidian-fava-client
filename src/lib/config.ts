@@ -60,6 +60,10 @@ export interface DomainConfig {
 	spendGroups: { label: string; categories: string[] }[];
 	/** Investment contributions shown in the spend ring */
 	contribAccounts: { label: string; prefix: string }[];
+	/**
+	 * Fallback envelope list, used only when no account declares `envelope`
+	 * metadata on its `open` directive — the ledger wins when it does.
+	 */
 	savingsEnvelopes: { account: string; label: string; target: number }[];
 	/** Sender-domain → funding account (interpreter) */
 	domainFunding: Record<string, string>;

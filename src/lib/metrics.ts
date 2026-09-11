@@ -45,7 +45,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 	})();
 
 	const run = (bql: string) => client.runQuery(bql);
-	const envelopeRegex = `^(${cfg.savingsEnvelopes.map((e) => e.account).join('|')})$`;
+	const envelopeAccounts = cfg.savingsEnvelopes.map((e) => e.account);
 
 	const [
 		balancesRaw,
@@ -75,6 +75,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 		persIncMonthlyRaw,
 		bizOpexMonthlyRaw,
 		bizIncMonthlyRaw,
+		envelopeDefsRaw,
 		envelopes3Raw,
 		contribRaw,
 		adsRevenueRaw,
@@ -108,9 +109,8 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 		run(BQL.monthlySums(a.personalIncome, twelveMo)),
 		run(BQL.bizMonthlyOpex(a.businessExpense, twelveMo)),
 		run(BQL.monthlySums(a.businessIncome, twelveMo)),
-		cfg.savingsEnvelopes.length
-			? run(BQL.balancesAt(threeMo, envelopeRegex))
-			: Promise.resolve([] as string[][]),
+		run(BQL.envelopeDefs()),
+		run(BQL.envelopeBalancesAt(threeMo, envelopeAccounts)),
 		cfg.contribAccounts.length
 			? run(
 					BQL.contribByAcct(
@@ -206,7 +206,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 	const bRevYoyLast = Math.abs(firstNum(bizIncYoyRaw));
 
 	// ── Envelopes ──
-	const envelopes = computeEnvelopes(cfg, balances, envelopes3Raw);
+	const envelopes = computeEnvelopes(cfg, balances, envelopeDefsRaw, envelopes3Raw);
 
 	// ── Statuses & verdict ──
 	const b = business;
