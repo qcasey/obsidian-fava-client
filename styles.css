@@ -431,6 +431,42 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 	font-variant-numeric: tabular-nums;
 }
 
+/* ── Two-step form (mobile) ── */
+.fava-entry__step {
+	display: grid;
+	gap: var(--size-4-2);
+	align-content: start;
+}
+.is-mobile .fava-entry__step .fava-field--amount .fava-field__input {
+	font-size: 2.2em;
+	font-weight: 600;
+	min-height: 68px;
+	padding: var(--size-4-2) var(--size-4-3);
+	text-align: center;
+}
+.fava-entry__actions {
+	display: flex;
+	align-items: center;
+	gap: var(--size-4-2);
+	margin-top: var(--size-2-2);
+}
+.fava-entry__actions .fava-entry__submit {
+	flex: 1;
+}
+.fava-entry__stepnote {
+	flex: 1;
+	min-width: 0;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-muted);
+	text-align: center;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.is-mobile .fava-entry__actions button {
+	min-height: 48px;
+}
+
 .fava-field-row {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

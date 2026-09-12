@@ -46,6 +46,13 @@ export class QuickEntryModal extends Modal {
 	private splitAmount!: HTMLInputElement;
 	private splitLink!: HTMLButtonElement;
 	private kindNote!: HTMLElement;
+	/** Mobile only: 1 = when/who/how much, 2 = everything else. */
+	private step: 1 | 2 = 1;
+	private readonly twoStep = Platform.isMobile;
+	private stepEls: { one: HTMLElement; two: HTMLElement } | null = null;
+	private nextBtn: HTMLButtonElement | null = null;
+	private backBtn: HTMLButtonElement | null = null;
+	private stepNote: HTMLElement | null = null;
 	private dupBox!: HTMLElement;
 	private previewBox!: HTMLElement;
 	private previewPre!: HTMLElement;
@@ -73,22 +80,28 @@ export class QuickEntryModal extends Modal {
 		root.empty();
 		root.addClass('fava-entry');
 
-		new InterpreterPanel(this.plugin, root, {
+		const interpreterHost = root.createDiv({ cls: 'fava-entry__interp' });
+		new InterpreterPanel(this.plugin, interpreterHost, {
 			kind: () => this.kind,
 			onParsed: (d) => this.applyParsed(d),
 			component: this.owner,
 		});
 
-		const dateAmount = root.createDiv({ cls: 'fava-field-row' });
-		const date = textField(dateAmount, 'Date', { type: 'date' });
-		date.input.value = todayISO();
-		const amount = textField(dateAmount, 'Amount', {
+		// Step one asks what only you know; step two is mostly prefilled.
+		const one = root.createDiv({ cls: 'fava-entry__step' });
+		const two = this.twoStep ? root.createDiv({ cls: 'fava-entry__step' }) : null;
+		if (two) this.stepEls = { one, two };
+		const rest = two ?? root;
+
+		const amount = textField(one, 'Amount', {
 			placeholder: '0.00',
 			inputmode: 'decimal',
 			cls: 'fava-field--amount',
 		});
+		const date = textField(one, 'Date', { type: 'date' });
+		date.input.value = todayISO();
 
-		const payee = textField(root, 'Payee', { placeholder: 'Albertsons' });
+		const payee = textField(one, 'Payee', { placeholder: 'Albertsons' });
 		new PayeeSuggest(
 			this.app,
 			payee.input,
@@ -96,9 +109,9 @@ export class QuickEntryModal extends Modal {
 			(v) => void this.onPayeePicked(v),
 		);
 
-		const narration = textField(root, 'Narration', { placeholder: 'Strawberries and bread' });
+		const narration = textField(rest, 'Narration', { placeholder: 'Strawberries and bread' });
 
-		const funding = textField(root, 'Paid with', { placeholder: 'Liabilities:Personal:AmEx:Blue' });
+		const funding = textField(rest, 'Paid with', { placeholder: 'Liabilities:Personal:AmEx:Blue' });
 		new AccountSuggest(
 			this.app,
 			funding.input,
@@ -109,14 +122,14 @@ export class QuickEntryModal extends Modal {
 			},
 		);
 
-		this.buildSplit(root);
+		this.buildSplit(rest);
 
-		const category = textField(root, 'Category', { placeholder: 'Expense / income account' });
+		const category = textField(rest, 'Category', { placeholder: 'Expense / income account' });
 		new AccountSuggest(this.app, category.input, () => this.categoryOptions(), () => this.sync());
 
 		this.fields = { date, amount, payee, narration, funding, category };
 
-		const toggles = root.createDiv({ cls: 'fava-entry__toggles' });
+		const toggles = rest.createDiv({ cls: 'fava-entry__toggles' });
 		new Setting(toggles)
 			.setName('Refund')
 			.addToggle((t) => {
@@ -136,12 +149,24 @@ export class QuickEntryModal extends Modal {
 				});
 			});
 
-		this.dupBox = root.createDiv({ cls: 'fava-alert' });
+		this.dupBox = rest.createDiv({ cls: 'fava-alert' });
 		this.dupBox.hidden = true;
 
-		this.buildPreview(root);
+		this.buildPreview(rest);
 
-		this.submitBtn = root.createEl('button', {
+		const actions = root.createDiv({ cls: 'fava-entry__actions' });
+		if (this.twoStep) {
+			this.backBtn = actions.createEl('button', { text: 'Back', attr: { type: 'button' } });
+			this.owner.registerDomEvent(this.backBtn, 'click', () => this.goToStep(1));
+			this.stepNote = actions.createDiv({ cls: 'fava-entry__stepnote' });
+			this.nextBtn = actions.createEl('button', {
+				cls: 'mod-cta fava-entry__submit',
+				text: 'Next',
+				attr: { type: 'button' },
+			});
+			this.owner.registerDomEvent(this.nextBtn, 'click', () => this.goToStep(2));
+		}
+		this.submitBtn = actions.createEl('button', {
 			cls: 'mod-cta fava-entry__submit',
 			text: 'Add entry',
 			attr: { type: 'button' },
@@ -174,6 +199,7 @@ export class QuickEntryModal extends Modal {
 			});
 		}
 
+		this.applyStep();
 		this.applyPrefill();
 		this.sync();
 		void this.loadAutocomplete();
@@ -202,7 +228,9 @@ export class QuickEntryModal extends Modal {
 	}
 
 	private focusFirstGap(): void {
-		const order: FieldName[] = ['payee', 'amount', 'funding', 'category'];
+		const order: FieldName[] = this.twoStep && this.step === 1
+			? ['amount', 'payee']
+			: ['payee', 'amount', 'funding', 'category'];
 		const target = order.find((n) => !this.fields[n].input.value.trim());
 		window.setTimeout(() => (target ? this.fields[target].input : this.submitBtn).focus(), 0);
 	}
@@ -453,6 +481,37 @@ export class QuickEntryModal extends Modal {
 		return d.fundings.length > 0 && !!(d.payee.trim() || d.narration.trim()) && !!d.category.trim() && !!d.date;
 	}
 
+	private goToStep(step: 1 | 2): void {
+		if (!this.twoStep) return;
+		this.step = step;
+		this.applyStep();
+		// Land on the first thing still missing rather than the top of the form.
+		const focus = step === 1 ? (this.fields.amount.input.value ? this.fields.payee : this.fields.amount) : null;
+		window.setTimeout(() => focus?.input.focus(), 50);
+		this.contentEl.scrollTo({ top: 0 });
+	}
+
+	private applyStep(): void {
+		if (!this.stepEls) return;
+		const onOne = this.step === 1;
+		this.stepEls.one.hidden = !onOne;
+		this.stepEls.two.hidden = onOne;
+		if (this.nextBtn) this.nextBtn.hidden = !onOne;
+		if (this.backBtn) this.backBtn.hidden = onOne;
+		this.submitBtn.hidden = onOne;
+		if (this.stepNote) this.stepNote.hidden = onOne;
+		this.setTitle(onOne ? 'Add entry' : 'Review');
+	}
+
+	/** Step two's header line: what step one captured. */
+	private stepSummary(): string {
+		const d = this.draft();
+		const who = d.payee.trim() || d.narration.trim() || 'No payee';
+		const amount = d.fundings[0]?.amount ?? this.fields.amount.input.value;
+		const money = amount ? `$${amount}` : 'no amount';
+		return `${money} · ${who} · ${d.date}`;
+	}
+
 	/**
 	 * Personal vs business is decided by the account the money came from; a
 	 * business card means the business ledger. Falls back to the category.
@@ -488,6 +547,11 @@ export class QuickEntryModal extends Modal {
 		this.previewPre.setText(preview || '…');
 		this.submitBtn.disabled = !complete || this.busy;
 		this.submitBtn.toggleClass('is-busy', this.busy);
+		if (this.nextBtn) {
+			const ready = !!d.date && (!!d.payee.trim() || !!d.narration.trim());
+			this.nextBtn.disabled = !ready;
+		}
+		if (this.stepNote) this.stepNote.setText(this.stepSummary());
 	}
 
 	private async submit(): Promise<void> {
