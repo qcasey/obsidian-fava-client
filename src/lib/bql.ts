@@ -17,8 +17,17 @@ export const ENVELOPE_META = {
 	sort: 'envelope_sort',
 } as const;
 
-const META_STR = (key: string) => `str(getitem(open_meta(account), "${key}"))`;
-const ENVELOPE_WHERE = `${META_STR(ENVELOPE_META.label)} != ""`;
+/**
+ * Read one metadata key off an account's `open` directive. A missing key comes
+ * back as "", which is what makes ENVELOPE_WHERE work.
+ *
+ * Never wrap this in BQL's str(): under beancount 2 (which older Fava servers
+ * still run) str() is repr(), so a missing key becomes the two-character
+ * string "''" — never equal to "", so every account in the ledger matches.
+ * beancount 3 converts properly, which hides the bug locally.
+ */
+const META = (key: string) => `getitem(open_meta(account), "${key}")`;
+const ENVELOPE_WHERE = `${META(ENVELOPE_META.label)} != ""`;
 
 export interface RentRule {
 	payee: string;
@@ -71,12 +80,12 @@ export const BQL = {
 	 * Savings envelopes declared in the ledger: metadata on the account's `open`
 	 * directive. Columns are account, label, target, sort, then the balance.
 	 *
-	 * getitem() is typed `object`, so a missing key cannot be tested with
-	 * `!= NULL` (a compile error in beanquery) — str() it and compare to "",
-	 * which renders a missing key as the empty string.
+	 * A missing key cannot be tested with `!= NULL` — getitem() is typed
+	 * `object` under beancount 3 and that is a compile error — so compare
+	 * against "" instead. See META above before touching this.
 	 */
 	envelopeDefs: () =>
-		`SELECT account, ${META_STR(ENVELOPE_META.label)} as label, ${META_STR(ENVELOPE_META.target)} as target, ${META_STR(ENVELOPE_META.sort)} as sort, sum(position) WHERE ${ENVELOPE_WHERE} GROUP BY account, label, target, sort`,
+		`SELECT account, ${META(ENVELOPE_META.label)} as label, ${META(ENVELOPE_META.target)} as target, ${META(ENVELOPE_META.sort)} as sort, sum(position) WHERE ${ENVELOPE_WHERE} GROUP BY account, label, target, sort`,
 
 	/**
 	 * Envelope balances as of `cutoff`, for the 3-month delta. Covers both
