@@ -1,6 +1,6 @@
 {
 	"name": "fava-client",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"description": "Obsidian plugin: dashboard, embeddable cards and quick entry for a Fava (Beancount) ledger server.",
 	"main": "main.js",
 	"type": "module",

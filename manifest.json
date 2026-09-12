@@ -1,7 +1,7 @@
 {
 	"id": "fava-client",
 	"name": "Fava client",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"minAppVersion": "1.7.2",
 	"description": "Dashboard, embeddable cards and quick entry for a Fava (Beancount) ledger server.",
 	"author": "Quinn Casey",
