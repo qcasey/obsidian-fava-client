@@ -10,6 +10,8 @@ export interface SectionDef {
 	title: string;
 	/** No header, never collapses (the overview) */
 	headerless?: boolean;
+	/** Rendered full width above the grid, outside the masonry columns */
+	lead?: { id: string; params?: Params };
 	cards: { id: string; params?: Params }[];
 	/** One-line summary shown in the header while collapsed */
 	summary?: (s: Snapshot) => string;
@@ -20,6 +22,7 @@ export const SECTIONS: SectionDef[] = [
 		id: 'overview',
 		title: 'Overview',
 		headerless: true,
+		lead: { id: 'relax', params: { kicker: 'Four-day weeks, small luxuries, giving' } },
 		cards: [
 			{ id: 'add-entry' },
 			{ id: 'verdict' },

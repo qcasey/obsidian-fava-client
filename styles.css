@@ -823,3 +823,57 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 /* While a cold load fills in, values are still zero in places: a status dot
    would be reporting on data that has not arrived. */
 .fava-partial .fava-dot { visibility: hidden; }
+
+/* ── Relax (section lead) ── */
+.fava-lead { margin-bottom: var(--size-4-2); }
+.fava-relax { padding: var(--size-4-4); }
+.fava-relax__grid { display: flex; flex-direction: column; gap: var(--size-4-4); }
+@container fava (min-width: 620px) {
+	.fava-relax__grid { flex-direction: row; align-items: flex-start; }
+	.fava-relax__say { flex: 1 1 55%; }
+	.fava-relax__checks { flex: 1 1 45%; }
+}
+.fava-relax__say { min-width: 0; }
+.fava-relax__kicker {
+	font-size: var(--font-ui-smaller);
+	font-weight: 500;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+.fava-relax__q { font-size: 2.4em; font-weight: 700; line-height: 1.05; color: var(--text-muted); }
+.fava-relax__a { font-size: 2.4em; font-weight: 700; line-height: 1.05; color: var(--fava-status, var(--text-normal)); }
+.fava-relax__summary { margin: var(--size-4-3) 0 0; font-size: var(--font-ui-medium); line-height: 1.5; color: var(--text-normal); }
+.fava-relax__checks { display: flex; flex-direction: column; gap: var(--size-4-2); min-width: 0; }
+.fava-relax__check {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: var(--size-4-3);
+	border-radius: var(--radius-m);
+	background: rgba(var(--color-green-rgb), 0.12);
+}
+.fava-relax__check.is-yellow { background: rgba(var(--color-yellow-rgb), 0.14); }
+.fava-relax__check.is-red { background: rgba(var(--color-red-rgb), 0.12); }
+.fava-relax__check .fava-dot { margin-top: 6px; }
+.fava-relax__copy { min-width: 0; }
+/* The dot carries the colour; the title stays readable. */
+.fava-relax__check-title { font-weight: 600; color: var(--text-normal); }
+.fava-relax__check-text { margin-top: 2px; font-size: var(--font-ui-small); line-height: 1.45; color: var(--text-muted); }
+.fava-relax__more {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	margin-top: var(--size-4-3);
+	padding: 2px 0;
+	background: none;
+	box-shadow: none;
+	border: none;
+	font-size: var(--font-ui-smaller);
+	color: var(--text-faint);
+	cursor: pointer;
+}
+.fava-relax__more:hover { color: var(--text-normal); background: none; box-shadow: none; }
+.fava-relax__chevron { display: inline-flex; transition: transform 120ms ease; }
+.fava-relax.is-expanded .fava-relax__chevron { transform: rotate(180deg); }
+.fava-relax__body { max-width: 420px; }

@@ -49,6 +49,12 @@ export function computePersonal(i: PersonalInputs): PersonalMetrics {
 			!a.liquidExclude.some((p) => x.startsWith(p)),
 	);
 
+	// What you would actually be living on if the business stopped: investments
+	// included, card balances netted off.
+	const netAssets =
+		sumWhere(balances, (x) => x.startsWith(a.personalAsset)) +
+		sumWhere(balances, (x) => x.startsWith(a.personalLiability));
+
 	const exp3 = sumAll(persExp3);
 	const exp6 = sumAll(persExp6);
 	const monthlySpend = exp3 / mE3;
@@ -128,6 +134,7 @@ export function computePersonal(i: PersonalInputs): PersonalMetrics {
 
 	return {
 		liquid,
+		netAssets,
 		monthlySpend,
 		monthlyIncome,
 		monthlyIncomeTrailing,

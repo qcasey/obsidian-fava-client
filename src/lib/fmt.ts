@@ -106,3 +106,31 @@ export function fmtBy(format: NumberFormat, n: number): string {
 			return `$${n.toFixed(0)}/day`;
 	}
 }
+
+/**
+ * Money rounded to the precision you would use out loud: "$12k", "$3.4k",
+ * "$850". For prose, where an exact figure invites arithmetic.
+ */
+export function fmtApproxMoney(n: number): string {
+	const abs = Math.abs(n);
+	const sign = n < 0 ? '-' : '';
+	if (abs >= 10000) return `${sign}$${Math.round(abs / 1000)}k`;
+	if (abs >= 1000) return `${sign}$${(abs / 1000).toFixed(1)}k`;
+	if (abs >= 200) return `${sign}$${Math.round(abs / 50) * 50}`;
+	return `${sign}$${Math.round(abs / 10) * 10}`;
+}
+
+const YEAR_WORDS = ['', 'a year', 'two years', 'three years', 'four years', 'five years'];
+
+/** A span of months as a phrase: "about 7 months", "about two years". */
+export function fmtApproxDuration(months: number): string {
+	if (!Number.isFinite(months) || months >= 66) return 'well over five years';
+	if (months < 1.5) return 'about a month';
+	if (months < 18) return `about ${Math.round(months)} months`;
+	const years = months / 12;
+	const whole = Math.round(years);
+	const word = YEAR_WORDS[whole];
+	// Only reach for the word when the rounding is not a lie.
+	if (word && Math.abs(years - whole) < 0.2) return `about ${word}`;
+	return `about ${years.toFixed(1)} years`;
+}

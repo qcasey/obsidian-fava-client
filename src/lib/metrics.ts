@@ -9,6 +9,7 @@ import type { QueryRunner } from './fava-client';
 import { computeBusiness, computeComposition } from './metrics-business';
 import { FLOW_MONTHS, computeFlows, rootOf } from './metrics-flows';
 import { computeEnvelopes, computePersonal } from './metrics-personal';
+import { computeCushion, computeRelax } from './metrics-relax';
 import {
 	firstNum,
 	monthKey,
@@ -310,5 +311,6 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 		flows: computeFlows(flowsRaw, cfg, today),
 		statuses,
 		verdict: { reds, warnings },
+		relax: computeRelax(cfg, personal, business, computeCushion(nwSeries)),
 	};
 }

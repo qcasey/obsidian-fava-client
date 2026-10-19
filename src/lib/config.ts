@@ -16,6 +16,9 @@ export interface DomainConfig {
 		outstandingLiab: string;
 		/** Personal tax payments (excluded from "lifestyle" burn) */
 		personalTaxPrefix: string;
+		/** Everything owned / owed on the personal side, for the net-assets figure */
+		personalAsset: string;
+		personalLiability: string;
 		liquidPrefixes: string[];
 		liquidExclude: string[];
 	};
@@ -40,6 +43,15 @@ export interface DomainConfig {
 		/** Net change vs the previous equal window, as a % of income — green above, then yellow above */
 		flowTrendGreen: number;
 		flowTrendYellow: number;
+		/** Relax: operating profit ÷ what life costs */
+		relaxBillsGreen: number;
+		relaxBillsYellow: number;
+		/** Relax: months of cushion left at the current drain rate */
+		relaxCushionGreen: number;
+		relaxCushionYellow: number;
+		/** Relax: months personal savings alone cover with the business off */
+		relaxFloorGreen: number;
+		relaxFloorYellow: number;
 	};
 	/** Fixed rent credit posting that offsets HomeOffice */
 	rent: {
@@ -89,6 +101,8 @@ export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
 		bizStripe: 'Assets:PhotoPanda:Stripe',
 		outstandingLiab: 'Assets:PhotoPanda:BlueVine:Receivable:Holding',
 		personalTaxPrefix: 'Expenses:Personal:Government:',
+		personalAsset: 'Assets:Personal:',
+		personalLiability: 'Liabilities:Personal:',
 		liquidPrefixes: [
 			'Assets:Personal:Banks:',
 			'Assets:Personal:Investments:Vanguard:CashPlus',
@@ -114,6 +128,12 @@ export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
 		combinedRunwayYellow: 6,
 		flowTrendGreen: -2,
 		flowTrendYellow: -8,
+		relaxBillsGreen: 1.15,
+		relaxBillsYellow: 1.0,
+		relaxCushionGreen: 36,
+		relaxCushionYellow: 18,
+		relaxFloorGreen: 18,
+		relaxFloorYellow: 9,
 	},
 	rent: {
 		payee: 'Kailey',
@@ -224,6 +244,8 @@ const SHAPE: Shape = {
 		bizStripe: 'string',
 		outstandingLiab: 'string',
 		personalTaxPrefix: 'string',
+		personalAsset: 'string',
+		personalLiability: 'string',
 		liquidPrefixes: 'string[]',
 		liquidExclude: 'string[]',
 	},

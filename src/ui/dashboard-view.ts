@@ -177,6 +177,7 @@ export class FavaDashboardView extends ItemView {
 		for (const section of SECTIONS) {
 			if (section.headerless) {
 				const sec = this.root.createDiv({ cls: 'fava-section fava-section--overview' });
+				this.renderLead(section, sec, ctx);
 				const grid = sec.createDiv({ cls: 'fava-grid' });
 				this.renderSectionCards(section, grid, ctx);
 				continue;
@@ -191,11 +192,14 @@ export class FavaDashboardView extends ItemView {
 			setIcon(chevron, 'chevron-down');
 			head.createSpan({ cls: 'fava-section__title', text: section.title });
 			if (section.summary) head.createSpan({ cls: 'fava-section__summary', text: section.summary(snapshot) });
+			const lead = this.renderLead(section, sec, ctx);
+			if (lead) lead.hidden = collapsed;
 			const grid = sec.createDiv({ cls: 'fava-grid' });
 			grid.hidden = collapsed;
 			head.addEventListener('click', () => {
 				const now = !sec.hasClass('is-collapsed');
 				sec.toggleClass('is-collapsed', now);
+				if (lead) lead.hidden = now;
 				grid.hidden = now;
 				head.setAttr('aria-expanded', String(!now));
 				this.plugin.settings.collapsedSections[section.id] = now;
@@ -203,6 +207,18 @@ export class FavaDashboardView extends ItemView {
 			});
 			this.renderSectionCards(section, grid, ctx);
 		}
+	}
+
+	/** The section's lead card: full width, above and outside the masonry grid. */
+	private renderLead(section: SectionDef, sec: HTMLElement, ctx: CardContext): HTMLElement | null {
+		if (!section.lead) return null;
+		const def = getCard(section.lead.id);
+		if (!def) return null;
+		const params = coerceParams(def, section.lead.params ?? {});
+		if (!params.ok) return null;
+		const host = sec.createDiv({ cls: 'fava-lead' });
+		renderCard(host, def, { ...ctx, keyPrefix: `dash:${section.id}:${section.lead.id}` }, params.params);
+		return host;
 	}
 
 	private renderSectionCards(section: SectionDef, grid: HTMLElement, ctx: CardContext): void {

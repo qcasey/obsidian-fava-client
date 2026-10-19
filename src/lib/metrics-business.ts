@@ -261,8 +261,10 @@ export function computeBusiness(i: BusinessInputs): BusinessResult {
 
 /**
  * Net-worth composition: partition the same accounts the NW regex covers. The
- * receivable holding is money that will be paid out, so it gets its own slice
- * instead of hiding inside business cash.
+ * holding account is cash already received against orders not yet fulfilled.
+ * It is yours either way — it becomes revenue when the order completes, or a
+ * year on if the customer never sends their photos — so it counts in full, but
+ * it keeps its own slice because it is pre-delivery money, not takeable profit.
  */
 export function computeComposition(
 	cfg: DomainConfig,
@@ -280,7 +282,7 @@ export function computeComposition(
 			label: 'Business cash & assets',
 			value: balancePrefix('Assets:PhotoPanda:') - receivable,
 		},
-		{ label: 'Receivable holding (owed out)', value: receivable },
+		{ label: 'Cash from open orders', value: receivable },
 		{ label: 'Personal liabilities', value: balancePrefix('Liabilities:Personal:') },
 		{ label: 'Business liabilities', value: balancePrefix(a.businessLiability) },
 	].filter((s) => Math.abs(s.value) >= 1);
