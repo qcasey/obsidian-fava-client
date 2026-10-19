@@ -10,6 +10,7 @@ import {
 	validateDraft,
 	type Autocomplete,
 	type DupMatch,
+	type PayeePrefill,
 } from '../lib/entry-service';
 import { formatEntry } from '../lib/format-entry';
 import { interpretText } from '../lib/interpret';
@@ -30,6 +31,14 @@ import {
 
 type FieldName = 'date' | 'amount' | 'payee' | 'narration' | 'funding' | 'category';
 
+/** Fields that offer a reset-to-guess button, and where their guess lives. */
+const RESETTABLE = {
+	narration: (g: PayeePrefill) => g.narration,
+	funding: (g: PayeePrefill) => g.fundingAccount,
+} as const satisfies Partial<Record<FieldName, (g: PayeePrefill) => string | null>>;
+
+const NO_GUESSES: PayeePrefill = { categoryAccount: null, fundingAccount: null, narration: null };
+
 export class QuickEntryModal extends Modal {
 	private kind: Side = 'personal';
 	private refund = false;
@@ -38,6 +47,8 @@ export class QuickEntryModal extends Modal {
 	private busy = false;
 	private dups: DupMatch[] = [];
 	private ac: Autocomplete | null = null;
+	/** Last payee-derived guesses; what the reset buttons restore. */
+	private guesses: PayeePrefill = NO_GUESSES;
 	private accounts: string[] = [];
 
 	private fields!: Record<FieldName, FieldHandle>;
@@ -109,9 +120,15 @@ export class QuickEntryModal extends Modal {
 			(v) => void this.onPayeePicked(v),
 		);
 
-		const narration = textField(rest, 'Narration', { placeholder: 'Strawberries and bread' });
+		const narration = textField(rest, 'Narration', {
+			placeholder: 'Strawberries and bread',
+			reset: 'Reset to the usual narration for this payee',
+		});
 
-		const funding = textField(rest, 'Paid with', { placeholder: 'Liabilities:Personal:AmEx:Blue' });
+		const funding = textField(rest, 'Paid with', {
+			placeholder: 'Liabilities:Personal:AmEx:Blue',
+			reset: 'Reset to the usual account for this payee',
+		});
 		new AccountSuggest(
 			this.app,
 			funding.input,
@@ -128,6 +145,7 @@ export class QuickEntryModal extends Modal {
 		new AccountSuggest(this.app, category.input, () => this.categoryOptions(), () => this.sync());
 
 		this.fields = { date, amount, payee, narration, funding, category };
+		this.wireResets();
 
 		const toggles = rest.createDiv({ cls: 'fava-entry__toggles' });
 		new Setting(toggles)
@@ -383,14 +401,54 @@ export class QuickEntryModal extends Modal {
 			: [...ac.expenseBusiness, ...ac.expensePersonal];
 	}
 
+	/** Clicking reset drops the field back to the payee's usual value. */
+	private wireResets(): void {
+		for (const [name, guessOf] of Object.entries(RESETTABLE) as [
+			keyof typeof RESETTABLE,
+			(g: PayeePrefill) => string | null,
+		][]) {
+			const field = this.fields[name];
+			if (!field.reset) continue;
+			this.owner.registerDomEvent(field.reset, 'click', () => {
+				const guess = guessOf(this.guesses);
+				if (!guess) return;
+				field.input.value = guess;
+				clearConfidence(field.wrapper);
+				if (name === 'funding') this.runDupCheck();
+				this.sync();
+			});
+		}
+	}
+
+	/** A reset button only earns its place when it would actually change the field. */
+	private syncResets(): void {
+		for (const [name, guessOf] of Object.entries(RESETTABLE) as [
+			keyof typeof RESETTABLE,
+			(g: PayeePrefill) => string | null,
+		][]) {
+			const field = this.fields[name];
+			if (!field.reset) continue;
+			const guess = guessOf(this.guesses);
+			field.reset.hidden = !guess || field.input.value.trim() === guess;
+		}
+	}
+
 	private async onPayeePicked(payee: string): Promise<void> {
 		clearConfidence(this.fields.payee.wrapper);
+		if (!payee.trim()) {
+			this.guesses = NO_GUESSES;
+			this.sync();
+			return;
+		}
 		this.sync();
-		if (!payee.trim()) return;
 		try {
 			const p = await payeePrefill(this.plugin.client, payee, this.kind, this.plugin.domainConfig);
+			this.guesses = p;
 			if (p.categoryAccount && !this.fields.category.input.value) {
 				this.fields.category.input.value = p.categoryAccount;
+			}
+			if (p.narration && !this.fields.narration.input.value) {
+				this.fields.narration.input.value = p.narration;
 			}
 			if (p.fundingAccount && !this.fields.funding.input.value) {
 				this.fields.funding.input.value = p.fundingAccount;
@@ -552,6 +610,7 @@ export class QuickEntryModal extends Modal {
 			this.nextBtn.disabled = !ready;
 		}
 		if (this.stepNote) this.stepNote.setText(this.stepSummary());
+		this.syncResets();
 	}
 
 	private async submit(): Promise<void> {

@@ -103,6 +103,14 @@ export const BQL = {
 	payeeFunding: (payee: string) =>
 		`SELECT account, count(account) as c WHERE payee = "${bqlString(payee)}" AND account ~ "^(Assets|Liabilities):" GROUP BY account ORDER BY c DESC LIMIT 3`,
 
+	/**
+	 * The narration this payee is usually filed under, for the narration best
+	 * guess. Scoped to one side because a payee can appear on both: personal
+	 * Amazon is "Items", business Amazon is "Amazon Seller Payment".
+	 */
+	payeeNarration: (payee: string, sideToken: string) =>
+		`SELECT narration, count(narration) as c WHERE payee = "${bqlString(payee)}" AND narration != "" AND account ~ "${sideToken}" GROUP BY narration ORDER BY c DESC LIMIT 1`,
+
 	duplicateCheck: (account: string, amount: string, date: string) =>
 		`SELECT date, payee, narration WHERE account = "${bqlString(account)}" AND number = ${amount} AND date >= ${addDays(date, -3)} AND date <= ${addDays(date, 3)}`,
 

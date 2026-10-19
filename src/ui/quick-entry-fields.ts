@@ -1,7 +1,7 @@
 // Input helpers for the quick-entry modal: text-field builders and
 // AbstractInputSuggest popovers for payees and accounts.
 
-import { AbstractInputSuggest, type App } from 'obsidian';
+import { AbstractInputSuggest, setIcon, type App } from 'obsidian';
 
 /** Multi-token "every word appears" filter, capped for popover speed. */
 export function filterOptions(options: string[], query: string, cap = 50): string[] {
@@ -66,23 +66,42 @@ export class AccountSuggest extends BaseSuggest {
 export interface FieldHandle {
 	wrapper: HTMLElement;
 	input: HTMLInputElement;
+	/** Reset-to-suggestion button, only when the field asked for one. Caller wires the click. */
+	reset: HTMLButtonElement | null;
 }
 
 /** Label + input wrapper; the wrapper carries confidence ring classes. */
 export function textField(
 	parent: HTMLElement,
 	label: string,
-	opts: { type?: string; placeholder?: string; inputmode?: string; cls?: string } = {},
+	opts: {
+		type?: string;
+		placeholder?: string;
+		inputmode?: string;
+		cls?: string;
+		/** Tooltip for a reset button beside the label; starts hidden. */
+		reset?: string;
+	} = {},
 ): FieldHandle {
 	const wrapper = parent.createDiv({ cls: `fava-field${opts.cls ? ` ${opts.cls}` : ''}` });
-	wrapper.createEl('label', { cls: 'fava-field__label', text: label });
+	const head = wrapper.createDiv({ cls: 'fava-field__head' });
+	head.createEl('label', { cls: 'fava-field__label', text: label });
+	let reset: HTMLButtonElement | null = null;
+	if (opts.reset) {
+		reset = head.createEl('button', {
+			cls: 'fava-field__reset',
+			attr: { type: 'button', 'aria-label': opts.reset, title: opts.reset },
+		});
+		setIcon(reset, 'rotate-ccw');
+		reset.hidden = true;
+	}
 	const input = wrapper.createEl('input', {
 		type: opts.type ?? 'text',
 		cls: 'fava-field__input',
 		placeholder: opts.placeholder,
 	});
 	if (opts.inputmode) input.inputMode = opts.inputmode;
-	return { wrapper, input };
+	return { wrapper, input, reset };
 }
 
 const CONFIDENCE_CLASSES = ['fava-conf-medium', 'fava-conf-low'];

@@ -432,8 +432,52 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 	padding-left: var(--size-2-2);
 	padding-right: var(--size-2-2);
 }
+/*
+ * The date input still needs containing (see above), but plain overflow:hidden
+ * clips what paints *outside* the input too — its focus ring and the
+ * interpreter's confidence ring, which is why focused fields looked shaved.
+ * overflow-clip-margin keeps the containment and gives those rings room.
+ * Engines without it fall back to the hidden declaration, i.e. today's
+ * behaviour, so this can only improve things.
+ */
 .fava-field {
 	overflow: hidden;
+	overflow: clip;
+	overflow-clip-margin: 4px;
+}
+
+/* Label row: the field name, and a reset button when there is a guess to go back to. */
+.fava-field__head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--size-2-2);
+}
+
+.fava-field__reset {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 24px;
+	padding: 0 var(--size-2-2);
+	background: none;
+	border: none;
+	box-shadow: none;
+	color: var(--text-muted);
+	cursor: pointer;
+}
+.fava-field__reset:hover {
+	color: var(--text-normal);
+}
+.fava-field__reset svg {
+	width: 14px;
+	height: 14px;
+}
+/* Fingers need a bigger target than the 24px label row wants to be. */
+.is-mobile .fava-field__reset {
+	height: 32px;
+	margin: -4px 0;
+	padding: 0 var(--size-2-3);
 }
 
 .fava-field--amount .fava-field__input {

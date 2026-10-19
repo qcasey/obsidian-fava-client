@@ -27,6 +27,8 @@ export interface DupMatch {
 export interface PayeePrefill {
 	categoryAccount: string | null;
 	fundingAccount: string | null;
+	/** Narration this payee is usually filed under, or null if it has no history. */
+	narration: string | null;
 }
 
 /** ":Personal:" / ":PhotoPanda:" from the configured expense prefix's 2nd segment. */
@@ -57,7 +59,7 @@ export function buildAutocomplete(meta: LedgerMeta, cfg: DomainConfig): Autocomp
 	};
 }
 
-/** Best category + funding account for a payee on the given side. */
+/** Best category, funding account and narration for a payee on the given side. */
 export async function payeePrefill(
 	client: FavaClient,
 	payee: string,
@@ -65,16 +67,17 @@ export async function payeePrefill(
 	cfg: DomainConfig,
 ): Promise<PayeePrefill> {
 	const side = sideToken(kind, cfg);
-	const [ranked, funding] = await Promise.all([
+	const [ranked, funding, narration] = await Promise.all([
 		client.getPayeeAccounts(payee),
 		client.runQuery(BQL.payeeFunding(payee)),
+		client.runQuery(BQL.payeeNarration(payee, side)),
 	]);
 	const categoryAccount = ranked.find((x) => isCategory(x) && x.includes(side)) ?? null;
 	const fundingAccount =
 		funding.map((r) => cell(r, 0)).find((x) => x.includes(side)) ??
 		ranked.find((x) => isFunding(x) && x.includes(side)) ??
 		null;
-	return { categoryAccount, fundingAccount };
+	return { categoryAccount, fundingAccount, narration: cell(narration[0], 0) || null };
 }
 
 /** Same account, same |amount|, within ±3 days. Errors → no matches. */
