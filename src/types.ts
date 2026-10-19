@@ -233,18 +233,23 @@ export interface CushionTrend {
 }
 
 /**
- * One leg of the Relax answer. The sentence is written where the numbers are,
- * so the card can stay a dumb renderer and every phrasing decision lives in
- * one place with the thresholds that drive it.
+ * A colour-coded one-sentence readout. The sentence is written where the
+ * numbers are, so cards stay dumb renderers and every phrasing decision lives
+ * in one place with the thresholds that drive it.
  */
-export interface RelaxCheck {
-	id: 'bills' | 'cushion' | 'floor';
+export interface StatusNote {
+	id: string;
 	title: string;
-	/** Noun phrase that reads inside a sentence, e.g. "what the business covers" */
-	topic: string;
 	/** One sentence, meant to be read without doing arithmetic */
 	text: string;
 	status: Status;
+}
+
+/** One leg of the Relax answer. */
+export interface RelaxCheck extends StatusNote {
+	id: 'bills' | 'cushion' | 'floor';
+	/** Noun phrase that reads inside a sentence, e.g. "what the business covers" */
+	topic: string;
 }
 
 /** "Can I keep living like this?" — the overview's one-word answer. */
@@ -290,6 +295,8 @@ export interface Metrics {
 	verdict: { reds: string[]; warnings: string[] };
 	/** The plain-language "am I okay" answer */
 	relax: Relax;
+	/** Headline readouts shown beside net worth, above the overview grid */
+	vitals: StatusNote[];
 }
 
 /** One successful load of everything the UI needs. */

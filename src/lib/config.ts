@@ -52,6 +52,9 @@ export interface DomainConfig {
 		/** Relax: months personal savings alone cover with the business off */
 		relaxFloorGreen: number;
 		relaxFloorYellow: number;
+		/** Share of envelope targets funded, 0–1 */
+		envelopesGreen: number;
+		envelopesYellow: number;
 	};
 	/** Fixed rent credit posting that offsets HomeOffice */
 	rent: {
@@ -134,6 +137,8 @@ export const DEFAULT_DOMAIN_CONFIG: DomainConfig = {
 		relaxCushionYellow: 18,
 		relaxFloorGreen: 18,
 		relaxFloorYellow: 9,
+		envelopesGreen: 0.9,
+		envelopesYellow: 0.5,
 	},
 	rent: {
 		payee: 'Kailey',

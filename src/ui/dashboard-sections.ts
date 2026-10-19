@@ -11,7 +11,7 @@ export interface SectionDef {
 	/** No header, never collapses (the overview) */
 	headerless?: boolean;
 	/** Rendered full width above the grid, outside the masonry columns */
-	lead?: { id: string; params?: Params };
+	leads?: { id: string; params?: Params }[];
 	cards: { id: string; params?: Params }[];
 	/** One-line summary shown in the header while collapsed */
 	summary?: (s: Snapshot) => string;
@@ -22,16 +22,13 @@ export const SECTIONS: SectionDef[] = [
 		id: 'overview',
 		title: 'Overview',
 		headerless: true,
-		lead: { id: 'relax', params: { kicker: 'Four-day weeks, small luxuries, giving' } },
+		leads: [
+			{ id: 'relax', params: { kicker: 'Four-day weeks, small luxuries, giving' } },
+			{ id: 'vitals' },
+		],
 		cards: [
 			{ id: 'add-entry' },
-			{ id: 'verdict' },
-			{ id: 'net-worth' },
-			{ id: 'income-expenses' },
-			{ id: 'runway' },
 			{ id: 'burn', params: { mode: 'both' } },
-			{ id: 'business-cash' },
-			{ id: 'envelopes' },
 			{ id: 'hours-to-buy' },
 		],
 		summary: (s) => `${fmtMoney(s.metrics.netWorth.current)} · ${s.metrics.runway.total.toFixed(1)} mo runway`,
@@ -56,6 +53,7 @@ export const SECTIONS: SectionDef[] = [
 		id: 'business',
 		title: 'Business',
 		cards: [
+			{ id: 'business-cash' },
 			{ id: 'business-net' },
 			{ id: 'breakeven' },
 			{ id: 'trend', params: { side: 'business' } },
@@ -69,7 +67,13 @@ export const SECTIONS: SectionDef[] = [
 	{
 		id: 'runway',
 		title: 'Net worth & runway',
-		cards: [{ id: 'composition' }, { id: 'upcoming' }, { id: 'survival-opex' }],
+		cards: [
+			{ id: 'net-worth' },
+			{ id: 'income-expenses' },
+			{ id: 'composition' },
+			{ id: 'upcoming' },
+			{ id: 'survival-opex' },
+		],
 		summary: (s) => `${fmtMoney(s.metrics.forecast.combined30d)} combined cash in 30 days`,
 	},
 ];

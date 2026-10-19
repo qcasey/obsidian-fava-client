@@ -96,12 +96,15 @@ export function kv(
 	parent: HTMLElement,
 	label: string,
 	value: string,
-	opts: { muted?: boolean; strong?: boolean; valueClass?: string } = {},
+	opts: { muted?: boolean; strong?: boolean; valueClass?: string; status?: Status } = {},
 ): HTMLElement {
 	const row = parent.createDiv({
 		cls: `fava-kv${opts.muted ? ' is-muted' : ''}${opts.strong ? ' is-strong' : ''}`,
 	});
-	row.createSpan({ cls: 'fava-kv__label', text: label });
+	const label_ = row.createSpan({ cls: 'fava-kv__label', text: label });
+	// A watched indicator carries its own dot, so it reads as something being
+	// tracked rather than a number that happens to be coloured.
+	if (opts.status) statusDot(label_, opts.status);
 	row.createSpan({ cls: `fava-kv__value ${opts.valueClass ?? ''}`.trim(), text: value });
 	return row;
 }

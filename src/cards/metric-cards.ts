@@ -51,7 +51,10 @@ export const netWorthCard: CardDef = {
 		{ name: 'months', kind: 'number', default: 24, desc: 'Months of history' },
 	],
 	render(el, ctx, p) {
-		const { netWorth: nw, statuses } = ctx.snapshot.metrics;
+		const m = ctx.snapshot.metrics;
+		const { netWorth: nw, runway: r, business: b, personal: pm, statuses } = m;
+		// Headline size: the number you open the dashboard for.
+		el.addClass('fava-card--hero');
 		const shell = cardShell(el, {
 			label: 'Net worth',
 			value: fmtMoney(nw.current),
@@ -60,9 +63,11 @@ export const netWorthCard: CardDef = {
 			href: ctx.links.enabled ? ctx.links.netWorth() : undefined,
 			toggle: { key: key(ctx, 'net-worth'), ui: ctx.ui },
 		});
+		// The trend lives with the breakdown rather than under the number, so the
+		// closed card is the figure and nothing else.
 		if (bool(p, 'sparkline', true)) {
 			const series = nw.series.slice(-num(p, 'months', 24));
-			drawLine(shell.card.createDiv({ cls: 'fava-card__chart' }), series.map((s) => ({ label: s.month, value: s.value })), {
+			drawLine(shell.body.createDiv({ cls: 'fava-card__chart' }), series.map((s) => ({ label: s.month, value: s.value })), {
 				formatY: (v) => fmtBy('compact', v),
 				formatX: (l) => fmtMonth(l, true),
 				sparkline: true,
@@ -71,6 +76,21 @@ export const netWorthCard: CardDef = {
 		for (const s of nw.composition) {
 			kv(shell.body, s.label, fmtMoney(s.value), { valueClass: s.value < 0 ? 'is-red' : '' });
 		}
+
+		shell.body.createDiv({ cls: 'fava-subhead', text: 'Survival runway' });
+		kv(shell.body, 'Cut to survival, then live off savings', `${r.total.toFixed(1)} mo`, {
+			strong: true,
+			valueClass: statusClass(statuses.runway),
+		});
+		kv(shell.body, 'Phase 1 · business cash', `${r.phase1.toFixed(1)} mo`, { muted: true });
+		kv(shell.body, 'Phase 2 · personal liquid', `${r.phase2.toFixed(1)} mo`, { muted: true });
+		kv(shell.body, 'Personal-only at current spend', `${pm.runwayMonths.toFixed(1)} mo`, {
+			valueClass: statusClass(statuses.personalRunway),
+		});
+		note(
+			shell.body,
+			`Sequential drawdown: ${fmtMoney(b.bizCash)} of business cash at ${fmtMoney(b.monthlySurvivalOpex)}/mo survival opex, then ${fmtMoney(pm.liquid)} of personal liquid at ${fmtMoney(pm.monthlySurvivalSpend)}/mo. Taxes excluded.`,
+		);
 	},
 };
 
@@ -120,7 +140,14 @@ export const surplusCard: CardDef = {
 		kv(shell.body, 'Income (3 mo avg)', `${fmtMoney(p.monthlyIncome)}/mo`);
 		kv(shell.body, 'Spend (3 mo avg)', `${fmtMoney(p.monthlySpend)}/mo`);
 		kv(shell.body, `Income (${trailing} mo avg)`, `${fmtMoney(p.monthlyIncomeTrailing)}/mo`, { muted: true });
-		kv(shell.body, 'Emergency fund', fmtMoney(p.emergencyFund), { valueClass: statusClass(statuses.emergencyFund) });
+		kv(shell.body, 'Emergency fund', fmtMoney(p.emergencyFund), {
+			status: statuses.emergencyFund,
+			valueClass: statusClass(statuses.emergencyFund),
+		});
+		kv(shell.body, 'Personal runway', `${p.runwayMonths.toFixed(1)} mo`, {
+			status: statuses.personalRunway,
+			valueClass: statusClass(statuses.personalRunway),
+		});
 	},
 };
 
@@ -142,7 +169,10 @@ export const businessCashCard: CardDef = {
 		kv(shell.body, 'Full opex', `${fmtMoney(b.monthlyOpex)}/mo`);
 		kv(shell.body, 'Survival opex', `${fmtMoney(b.monthlySurvivalOpex)}/mo`);
 		kv(shell.body, 'All business outflows', `${fmtMoney(b.monthlyTotalExp)}/mo`, { muted: true });
-		kv(shell.body, 'Hard liabilities', fmtMoney(b.hardLiabilities), { valueClass: statusClass(statuses.hardCoverage) });
+		kv(shell.body, 'Hard liabilities', fmtMoney(b.hardLiabilities), {
+			status: statuses.hardCoverage,
+			valueClass: statusClass(statuses.hardCoverage),
+		});
 		kv(shell.body, 'Cash covers them', `${b.hardCoverage.toFixed(1)}x`, { muted: true });
 	},
 };
@@ -171,7 +201,10 @@ export const businessNetCard: CardDef = {
 		kv(shell.body, 'Revenue', `${fmtMoney(b.monthlyRevenue)}/mo`);
 		kv(shell.body, 'Operating net', `${fmtSigned(b.operatingNet)}/mo`);
 		kv(shell.body, 'Owner pay & taxes', `${fmtMoney(b.ownerOutflowsMo)}/mo`);
-		kv(shell.body, 'Breakeven coverage', `${b.breakevenRatio.toFixed(1)}x`, { muted: true });
+		kv(shell.body, 'Breakeven coverage', `${b.breakevenRatio.toFixed(1)}x`, {
+			status: statuses.breakeven,
+			valueClass: statusClass(statuses.breakeven),
+		});
 	},
 };
 

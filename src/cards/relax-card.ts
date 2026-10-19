@@ -20,34 +20,34 @@ export const relaxCard: CardDef = {
 	],
 	render(el, ctx, p) {
 		const { relax, personal, business } = ctx.snapshot.metrics;
-		el.addClass('fava-card', 'fava-relax', `is-${relax.status}`);
-		const grid = el.createDiv({ cls: 'fava-relax__grid' });
+		el.addClass('fava-card', 'fava-panel', 'fava-relax', `is-${relax.status}`);
+		const grid = el.createDiv({ cls: 'fava-panel__grid' });
 
-		const say = grid.createDiv({ cls: 'fava-relax__say' });
+		const say = grid.createDiv({ cls: 'fava-panel__say' });
 		const kicker = str(p, 'kicker');
-		if (kicker) say.createDiv({ cls: 'fava-relax__kicker', text: kicker });
+		if (kicker) say.createDiv({ cls: 'fava-panel__kicker', text: kicker });
 		say.createDiv({ cls: 'fava-relax__q', text: 'Relax?' });
-		say.createDiv({ cls: 'fava-relax__a', text: relax.answer });
-		say.createEl('p', { cls: 'fava-relax__summary', text: relax.summary });
+		say.createDiv({ cls: 'fava-panel__value', text: relax.answer });
+		say.createEl('p', { cls: 'fava-panel__lede', text: relax.summary });
 
-		const checks = grid.createDiv({ cls: 'fava-relax__checks' });
+		const checks = grid.createDiv({ cls: 'fava-panel__boxes' });
 		for (const c of relax.checks) {
-			const box = checks.createDiv({ cls: `fava-relax__check is-${c.status}` });
+			const box = checks.createDiv({ cls: `fava-panel__box is-${c.status}` });
 			statusDot(box, c.status);
-			const copy = box.createDiv({ cls: 'fava-relax__copy' });
-			copy.createDiv({ cls: 'fava-relax__check-title', text: c.title });
-			copy.createDiv({ cls: 'fava-relax__check-text', text: c.text });
+			const copy = box.createDiv({ cls: 'fava-panel__copy' });
+			copy.createDiv({ cls: 'fava-panel__box-title', text: c.title });
+			copy.createDiv({ cls: 'fava-panel__box-text', text: c.text });
 		}
 
 		if (!bool(p, 'numbers', true)) return;
 
 		// The numbers exist, they are just not the point. Closed by default.
 		const key = `${ctx.keyPrefix}:relax-numbers`;
-		const more = el.createEl('button', { cls: 'fava-relax__more', attr: { type: 'button' } });
-		const chevron = more.createSpan({ cls: 'fava-relax__chevron' });
+		const more = el.createEl('button', { cls: 'fava-panel__more', attr: { type: 'button' } });
+		const chevron = more.createSpan({ cls: 'fava-panel__chevron' });
 		setIcon(chevron, 'chevron-down');
 		const moreLabel = more.createSpan({ text: 'Show the numbers' });
-		const body = el.createDiv({ cls: 'fava-card__body fava-relax__body' });
+		const body = el.createDiv({ cls: 'fava-card__body fava-panel__body' });
 
 		const c = relax.cushion;
 		kv(body, 'Business operating profit', `${fmtMoney(business.operatingNet)}/mo`);

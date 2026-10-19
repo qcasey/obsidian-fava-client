@@ -209,15 +209,17 @@ export class FavaDashboardView extends ItemView {
 		}
 	}
 
-	/** The section's lead card: full width, above and outside the masonry grid. */
+	/** The section's lead cards: full width, above and outside the masonry grid. */
 	private renderLead(section: SectionDef, sec: HTMLElement, ctx: CardContext): HTMLElement | null {
-		if (!section.lead) return null;
-		const def = getCard(section.lead.id);
-		if (!def) return null;
-		const params = coerceParams(def, section.lead.params ?? {});
-		if (!params.ok) return null;
+		if (!section.leads?.length) return null;
 		const host = sec.createDiv({ cls: 'fava-lead' });
-		renderCard(host, def, { ...ctx, keyPrefix: `dash:${section.id}:${section.lead.id}` }, params.params);
+		for (const lead of section.leads) {
+			const def = getCard(lead.id);
+			if (!def) continue;
+			const params = coerceParams(def, lead.params ?? {});
+			if (!params.ok) continue;
+			renderCard(host, def, { ...ctx, keyPrefix: `dash:${section.id}:${lead.id}` }, params.params);
+		}
 		return host;
 	}
 

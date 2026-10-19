@@ -7,9 +7,10 @@ import { CHART_CARDS } from './chart-cards';
 import { LIST_CARDS } from './list-cards';
 import { METRIC_CARDS } from './metric-cards';
 import { relaxCard } from './relax-card';
+import { vitalsCard } from './vitals-card';
 import type { CardContext, CardDef, Params, ParamValue } from './types';
 
-export const CARDS: CardDef[] = [relaxCard, ...METRIC_CARDS, ...LIST_CARDS, ...CHART_CARDS, ...ACTION_CARDS];
+export const CARDS: CardDef[] = [relaxCard, vitalsCard, ...METRIC_CARDS, ...LIST_CARDS, ...CHART_CARDS, ...ACTION_CARDS];
 
 export function getCard(id: string): CardDef | undefined {
 	return CARDS.find((c) => c.id === id);

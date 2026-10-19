@@ -171,6 +171,8 @@
 	line-height: 1.2;
 	font-variant-numeric: tabular-nums;
 }
+/* Hero: the one figure a card exists for, at Relax-answer size. */
+.fava-card--hero .fava-card__value { font-size: 2.4em; font-weight: 700; line-height: 1.05; margin-top: 4px; }
 .fava-card__detail { margin-top: 2px; font-size: var(--font-ui-smaller); color: var(--text-muted); }
 .fava-card__aside { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
 .fava-card__link { display: inline-flex; color: var(--text-faint); padding: 4px; }
@@ -195,7 +197,7 @@
 
 /* ── Body primitives ── */
 .fava-kv { display: flex; justify-content: space-between; gap: var(--size-4-2); font-size: var(--font-ui-small); }
-.fava-kv__label { color: var(--text-normal); min-width: 0; }
+.fava-kv__label { color: var(--text-normal); min-width: 0; display: inline-flex; align-items: center; gap: 6px; }
 .fava-kv__value { font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
 .fava-kv.is-muted, .fava-kv.is-muted .fava-kv__label, .fava-kv.is-muted .fava-kv__value { color: var(--text-muted); }
 .fava-kv.is-strong { font-weight: 600; }
@@ -824,17 +826,19 @@ svg.fava-chart--donut { aspect-ratio: 1; }
    would be reporting on data that has not arrived. */
 .fava-partial .fava-dot { visibility: hidden; }
 
-/* ── Relax (section lead) ── */
-.fava-lead { margin-bottom: var(--size-4-2); }
-.fava-relax { padding: var(--size-4-4); }
-.fava-relax__grid { display: flex; flex-direction: column; gap: var(--size-4-4); }
+/* ── Panel: the Relax and vitals leads share this language ── */
+.fava-lead { display: flex; flex-direction: column; gap: var(--size-4-2); margin-bottom: var(--size-4-2); }
+.fava-panel { padding: var(--size-4-4); }
+.fava-panel__grid { display: flex; flex-direction: column; gap: var(--size-4-4); }
 @container fava (min-width: 620px) {
-	.fava-relax__grid { flex-direction: row; align-items: flex-start; }
-	.fava-relax__say { flex: 1 1 55%; }
-	.fava-relax__checks { flex: 1 1 45%; }
+	.fava-panel__grid { flex-direction: row; align-items: flex-start; }
+	/* The statement sits against the middle of the boxes rather than trailing
+	   a column of dead space under it. */
+	.fava-panel__say { flex: 1 1 55%; align-self: center; }
+	.fava-panel__boxes { flex: 1 1 45%; }
 }
-.fava-relax__say { min-width: 0; }
-.fava-relax__kicker {
+.fava-panel__say { min-width: 0; }
+.fava-panel__kicker {
 	font-size: var(--font-ui-smaller);
 	font-weight: 500;
 	letter-spacing: 0.06em;
@@ -842,25 +846,26 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 	color: var(--text-muted);
 }
 .fava-relax__q { font-size: 2.4em; font-weight: 700; line-height: 1.05; color: var(--text-muted); }
-.fava-relax__a { font-size: 2.4em; font-weight: 700; line-height: 1.05; color: var(--fava-status, var(--text-normal)); }
-.fava-relax__summary { margin: var(--size-4-3) 0 0; font-size: var(--font-ui-medium); line-height: 1.5; color: var(--text-normal); }
-.fava-relax__checks { display: flex; flex-direction: column; gap: var(--size-4-2); min-width: 0; }
-.fava-relax__check {
+.fava-panel__value { font-size: 2.4em; font-weight: 700; line-height: 1.05; color: var(--fava-status, var(--text-normal)); }
+.fava-panel__lede { margin: var(--size-4-3) 0 0; font-size: var(--font-ui-medium); line-height: 1.5; color: var(--text-normal); }
+.fava-panel__boxes { display: flex; flex-direction: column; gap: var(--size-4-2); min-width: 0; }
+.fava-panel__box {
 	display: flex;
 	align-items: flex-start;
 	gap: 10px;
 	padding: var(--size-4-3);
 	border-radius: var(--radius-m);
-	background: rgba(var(--color-green-rgb), 0.12);
+	background: var(--background-modifier-hover);
 }
-.fava-relax__check.is-yellow { background: rgba(var(--color-yellow-rgb), 0.14); }
-.fava-relax__check.is-red { background: rgba(var(--color-red-rgb), 0.12); }
-.fava-relax__check .fava-dot { margin-top: 6px; }
-.fava-relax__copy { min-width: 0; }
+.fava-panel__box.is-green { background: rgba(var(--color-green-rgb), 0.12); }
+.fava-panel__box.is-yellow { background: rgba(var(--color-yellow-rgb), 0.14); }
+.fava-panel__box.is-red { background: rgba(var(--color-red-rgb), 0.12); }
+.fava-panel__box .fava-dot { margin-top: 6px; }
+.fava-panel__copy { min-width: 0; }
 /* The dot carries the colour; the title stays readable. */
-.fava-relax__check-title { font-weight: 600; color: var(--text-normal); }
-.fava-relax__check-text { margin-top: 2px; font-size: var(--font-ui-small); line-height: 1.45; color: var(--text-muted); }
-.fava-relax__more {
+.fava-panel__box-title { font-weight: 600; color: var(--text-normal); }
+.fava-panel__box-text { margin-top: 2px; font-size: var(--font-ui-small); line-height: 1.45; color: var(--text-muted); }
+.fava-panel__more {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
@@ -873,7 +878,21 @@ svg.fava-chart--donut { aspect-ratio: 1; }
 	color: var(--text-faint);
 	cursor: pointer;
 }
-.fava-relax__more:hover { color: var(--text-normal); background: none; box-shadow: none; }
-.fava-relax__chevron { display: inline-flex; transition: transform 120ms ease; }
-.fava-relax.is-expanded .fava-relax__chevron { transform: rotate(180deg); }
-.fava-relax__body { max-width: 420px; }
+.fava-panel__more:hover { color: var(--text-normal); background: none; box-shadow: none; }
+.fava-panel__chevron { display: inline-flex; transition: transform 120ms ease; }
+.fava-panel.is-expanded .fava-panel__chevron { transform: rotate(180deg); }
+.fava-panel__body { max-width: 420px; }
+
+/* Vitals lead: net worth as the statement, three readouts beside it. */
+.fava-panel__label {
+	font-size: var(--font-ui-smaller);
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	color: var(--text-muted);
+}
+.fava-panel__value--money { font-variant-numeric: tabular-nums; }
+.fava-panel__deltas { display: flex; flex-wrap: wrap; gap: var(--size-4-4); margin-top: var(--size-4-3); }
+.fava-panel__delta { min-width: 0; }
+.fava-panel__delta-value { font-size: 1.15em; font-weight: 600; font-variant-numeric: tabular-nums; }
+.fava-panel__delta-label { display: block; margin-top: 1px; font-size: var(--font-ui-smaller); color: var(--text-muted); }

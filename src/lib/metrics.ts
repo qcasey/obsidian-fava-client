@@ -10,6 +10,7 @@ import { computeBusiness, computeComposition } from './metrics-business';
 import { FLOW_MONTHS, computeFlows, rootOf } from './metrics-flows';
 import { computeEnvelopes, computePersonal } from './metrics-personal';
 import { computeCushion, computeRelax } from './metrics-relax';
+import { computeVitals } from './metrics-vitals';
 import {
 	firstNum,
 	monthKey,
@@ -208,6 +209,7 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 
 	// ── Envelopes ──
 	const envelopes = computeEnvelopes(cfg, balances, envelopeDefsRaw, envelopes3Raw);
+	const flows = computeFlows(flowsRaw, cfg, today);
 
 	// ── Statuses & verdict ──
 	const b = business;
@@ -308,9 +310,10 @@ export async function computeMetrics(client: QueryRunner, cfg: DomainConfig): Pr
 			delta: p.monthlySurplus + b.monthlyRevenue - b.monthlyTotalExp,
 		},
 		envelopes,
-		flows: computeFlows(flowsRaw, cfg, today),
+		flows,
 		statuses,
 		verdict: { reds, warnings },
 		relax: computeRelax(cfg, personal, business, computeCushion(nwSeries)),
+		vitals: computeVitals(cfg, flows.all, envelopes),
 	};
 }

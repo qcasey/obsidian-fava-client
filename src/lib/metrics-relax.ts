@@ -102,7 +102,7 @@ function floorCheck(cfg: DomainConfig, p: PersonalMetrics): RelaxCheck {
 	const months = p.monthlySpendTrailing > 0 ? p.netAssets / p.monthlySpendTrailing : 99;
 	return {
 		id: 'floor',
-		title: 'If it all stopped',
+		title: 'Survival runway',
 		topic: 'what your own savings cover',
 		status: status(months, t.relaxFloorGreen, t.relaxFloorYellow),
 		text: `Your own savings cover ${fmtApproxDuration(months)} of life with the business switched off.`,
@@ -111,7 +111,7 @@ function floorCheck(cfg: DomainConfig, p: PersonalMetrics): RelaxCheck {
 
 function summaryFor(verdict: Status, sore: RelaxCheck | undefined): string {
 	if (verdict === 'green' || !sore) {
-		return 'The pace you are living at pays for itself. Day-to-day spending is not what moves these numbers — a slow run of revenue is, and there is room for one.';
+		return 'The pace you are living at pays for itself.';
 	}
 	if (verdict === 'yellow') {
 		return `Nothing here needs a decision this month, but ${sore.topic} has started to drift. Worth a look next time you are in the ledger.`;
